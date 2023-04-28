@@ -8,6 +8,7 @@ import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { HashService } from 'src/hash/hash.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 ConfigModule.forRoot();
 
@@ -21,7 +22,13 @@ ConfigModule.forRoot();
     UsersModule,
     PassportModule,
   ],
-  providers: [AuthService, UsersService, LocalStrategy, HashService],
+  providers: [
+    AuthService,
+    UsersService,
+    LocalStrategy,
+    HashService,
+    PrismaService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

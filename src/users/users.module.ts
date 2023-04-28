@@ -10,6 +10,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { HashService } from 'src/hash/hash.service';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { UsersService } from './users.service';
   providers: [
     UsersService,
     HashService,
+    PrismaService,
     // AuthService,
     // JwtService,
     // JwtService

@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { HashService } from 'src/hash/hash.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+// import { PrismaService } from 'src/prisma/prisma.service';
 
 // This should be a real class/interface representing a user entity
 export type User = any;
@@ -47,7 +47,7 @@ class UserModel {
 @Injectable()
 export class UsersService {
   constructor(
-    private prisma: PrismaService,
+    // private prisma: PrismaService,
     private hashService: HashService,
   ) {}
 
@@ -73,9 +73,9 @@ export class UsersService {
       createUser.password,
     );
 
-    this.prisma.user.create({
-      data: createUser,
-    });
+    // this.prisma.user.create({
+    //   data: createUser,
+    // });
 
     return this.userModel.create(createUser);
   }
