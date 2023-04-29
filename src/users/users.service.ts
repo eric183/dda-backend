@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import e from 'express';
 import { HashService } from 'src/hash/hash.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 // import { PrismaService } from 'src/prisma/prisma.service';
 
 // This should be a real class/interface representing a user entity
 export type User = any;
-export type Mail = `${string}@${string}.com`;
+export type Email = string;
 
 class UserModel {
   userInfo: any[];
@@ -47,7 +49,7 @@ class UserModel {
 @Injectable()
 export class UsersService {
   constructor(
-    // private prisma: PrismaService,
+    private prisma: PrismaService,
     private hashService: HashService,
   ) {}
 
@@ -57,26 +59,46 @@ export class UsersService {
     return this.userModel.userInfo.find((user) => user.username === username);
   }
 
-  async getUserByMail(mail: Mail): Promise<User | undefined> {
-    return this.userModel.userInfo.find((user) => user.mail === mail);
+  async getUserByMail(email: Email): Promise<User | undefined> {
+    return await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      select: {
+        email: true,
+        password: true,
+      },
+    });
   }
 
   async registerUser(createUserDto): Promise<boolean> {
     const createUser = this.userModel.validateUserForm(createUserDto);
     // check if user exists
-    const user = await this.getUserByMail(createUser.email as any as Mail);
+
+    const user = await this.getUserByMail(createUser.email as any as Email);
+
+    console.log(user, '...sadf');
+
     if (user) {
+      console.log('已经存在的用户');
+      return user;
+
       throw new BadRequestException();
     }
+
+    // console.log(user, '.......user');
+    // this.hashService.hashPassword
     // Hash Password
+    console.log(createUser.password, '!!!');
     createUser.password = await this.hashService.hashPassword(
       createUser.password,
     );
 
-    // this.prisma.user.create({
-    //   data: createUser,
-    // });
+    const prismaResponse = await this.prisma.user.create({
+      data: createUser,
+    });
 
+    console.log(prismaResponse, '33333');
     return this.userModel.create(createUser);
   }
 }

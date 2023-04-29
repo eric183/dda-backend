@@ -11,20 +11,20 @@ export class AuthService {
     private hashService: HashService,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.getUserByUsername(username);
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.usersService.getUserByMail(email);
     const ifPass = await this.hashService.comparePassword(pass, user.password);
-
     if (user && ifPass) {
-      const { password, ...result } = user;
-      return result;
+      // const { password, ...result } = user;
+      return user;
     }
+
     return null;
   }
 
   async login(user: any) {
-    console.log(user, '...');
-    const payload = { username: user.username, sub: user.userId };
+    const payload = { email: user.email, sub: user.id };
+
     return {
       access_token: this.jwtService.sign(payload),
     };

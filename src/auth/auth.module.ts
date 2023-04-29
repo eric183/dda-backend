@@ -9,23 +9,26 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { HashService } from 'src/hash/hash.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+// import { JwtStrategy } from './jwt.strategy';
 
 ConfigModule.forRoot();
 
 @Module({
   controllers: [AuthController],
   imports: [
+    UsersModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '60s' },
       // signOptions: { expiresIn: '60s' },
     }),
-    UsersModule,
     PassportModule,
   ],
   providers: [
     AuthService,
     UsersService,
     LocalStrategy,
+    // JwtStrategy,
     HashService,
     PrismaService,
   ],

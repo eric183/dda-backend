@@ -3,23 +3,23 @@ import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 
-@Controller('regester')
+@Controller('register')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
   getIndex() {
-    return 'reggg';
+    return 'Pass!';
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('username')
+  @Get('mail')
   getUserByUsername(@Param() param) {
-    return this.usersService.getUserByUsername(param.username);
+    return this.usersService.getUserByMail(param.mail);
   }
 
   @Post()
   registerUser(@Body() createUserDto) {
-    return this.usersService.registerUser(createUserDto);
+    return this.usersService.registerUser(createUserDto.data);
   }
 }
