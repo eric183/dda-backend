@@ -71,13 +71,12 @@ export class UsersService {
     });
   }
 
-  async registerUser(createUserDto): Promise<boolean> {
-    const createUser = this.userModel.validateUserForm(createUserDto);
+  async registerUser(createUser): Promise<boolean> {
+    // const createUser = this.userModel.validateUserForm(createUserDto);
     // check if user exists
+    console.log(createUser, '...sadf');
 
     const user = await this.getUserByMail(createUser.email as any as Email);
-
-    console.log(user, '...sadf');
 
     if (user) {
       console.log('已经存在的用户');
