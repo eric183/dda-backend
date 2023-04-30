@@ -18,9 +18,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Widget {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-}
+// model Widget {
+//   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+// }
 
 model User {
   id         Int       @id @default(autoincrement())
@@ -30,7 +30,6 @@ model User {
   demands    Demand[]
   personalId Int?      @unique
   personal   Personal?
-  demanRole  DemanRole @default(FREE)
 }
 
 model Personal {
@@ -50,6 +49,7 @@ model Demand {
   created_time DateTime @default(now())
   English      String
   Chinese      String
+  demandRole  DemandRole @default(FREE)
 
   User   User? @relation(fields: [userId], references: [id])
   userId Int?
@@ -59,7 +59,7 @@ model Category {
   id Int @id @default(autoincrement())
 }
 
-enum DemanRole {
+enum DemandRole {
   NEED
   SERVER
   FREE

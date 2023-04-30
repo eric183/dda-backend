@@ -6,8 +6,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 // import { PrismaService } from 'src/prisma/prisma.service';
 
 // This should be a real class/interface representing a user entity
-export type User = any;
 export type Email = string;
+
+export type TUser = {
+  email: Email;
+  password: string;
+};
 
 class UserModel {
   userInfo: any[];
@@ -55,11 +59,11 @@ export class UsersService {
 
   userModel = new UserModel();
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByUsername(username: string): Promise<TUser | undefined> {
     return this.userModel.userInfo.find((user) => user.username === username);
   }
 
-  async getUserByMail(email: Email): Promise<User | undefined> {
+  async getUserByMail(email: Email): Promise<TUser | undefined> {
     return await this.prisma.user.findUnique({
       where: {
         email: email,
@@ -67,11 +71,12 @@ export class UsersService {
       select: {
         email: true,
         password: true,
+        id: true,
       },
     });
   }
 
-  async registerUser(createUser): Promise<boolean> {
+  async registerUser(createUser): Promise<boolean | TUser> {
     // const createUser = this.userModel.validateUserForm(createUserDto);
     // check if user exists
     console.log(createUser, '...sadf');

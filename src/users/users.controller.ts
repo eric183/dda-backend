@@ -21,7 +21,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Post('demand/create')
   setDemandToUser(@Body() demandInfo) {
-    this.demandsService.createDemandByUser(demandInfo);
+    // console.log(demandInfo, '!!......!!');
+    return this.demandsService.createDemandByUser(demandInfo);
   }
 
   @Post('register')
