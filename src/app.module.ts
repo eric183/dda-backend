@@ -10,6 +10,8 @@ import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
+import { DemandsService } from './demands/demands.service';
+import { DemandsModule } from './demands/demands.module';
 
 @Module({
   imports: [
@@ -19,9 +21,10 @@ import { PrismaService } from './prisma/prisma.service';
     UsersModule,
     HashModule,
     AuthModule,
+    DemandsModule,
   ],
   controllers: [AppController],
   // providers: [AppService],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, DemandsService],
 })
 export class AppModule {}

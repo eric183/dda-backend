@@ -11,6 +11,7 @@ import { HashService } from 'src/hash/hash.service';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { DemandsService } from 'src/demands/demands.service';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
     UsersService,
     HashService,
     PrismaService,
+    DemandsService,
     // AuthService,
     // JwtService,
     // JwtService

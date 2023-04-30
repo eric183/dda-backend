@@ -1,24 +1,30 @@
 import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { DemandsService } from 'src/demands/demands.service';
 import { UsersService } from './users.service';
 
-@Controller('register')
+@Controller()
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly demandsService: DemandsService,
+  ) {}
 
-  @Get()
-  getIndex() {
-    return 'Pass!';
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Get('mail')
+  @UseGuards(JwtAuthGuard)
+  @Get('email/:email')
   getUserByUsername(@Param() param) {
-    return this.usersService.getUserByMail(param.mail);
+    return this.usersService.getUserByMail(param.email);
   }
 
-  @Post()
+  @UseGuards(JwtAuthGuard)
+  @Post('demand/create')
+  setDemandToUser(@Body() demandInfo) {
+    this.demandsService.createDemandByUser(demandInfo);
+  }
+
+  @Post('register')
   registerUser(@Body() createUserDto) {
     return this.usersService.registerUser(createUserDto);
   }
