@@ -59,6 +59,10 @@ export class UsersService {
 
   userModel = new UserModel();
 
+  async getALLUsers() {
+    return await this.prisma.user.findMany();
+  }
+
   async getUserByUsername(username: string): Promise<TUser | undefined> {
     return this.userModel.userInfo.find((user) => user.username === username);
   }
