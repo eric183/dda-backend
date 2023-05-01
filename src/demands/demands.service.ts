@@ -27,7 +27,7 @@ export class DemandsService {
     });
   }
 
-  async getSelfDemandCountByUserId(userId: number) {
+  async getSelfDemandCountByUserId(userId: string) {
     return this.prisma.demand.count({
       where: {
         userId: userId,

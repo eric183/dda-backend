@@ -38,7 +38,7 @@ export class DemandsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('count/:userId')
-  getselfCount(@Param('userId', ParseIntPipe) userId: number) {
+  getselfCount(@Param('userId', ParseIntPipe) userId: string) {
     return this.demandsService.getSelfDemandCountByUserId(userId);
   }
 }
