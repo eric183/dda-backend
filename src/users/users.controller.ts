@@ -34,4 +34,17 @@ export class UsersController {
   getAllUser() {
     return this.usersService.getALLUsers();
   }
+
+  // @UseGuards(JwtAuthGuard)
+  @Get('user/:user')
+  getUserById(@Param() user) {
+    console.log(user, 'user');
+    return this.usersService.getUserbyId(user.id);
+  }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Get('count/:user')
+  // getselfCount(@Param() user) {
+  //   return this.demandsService.getSelfDemandCountByUserId(user.userId);
+  // }
 }
