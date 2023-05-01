@@ -20,7 +20,7 @@ export class DemandsService {
         ...omit(demand, 'userId'),
         User: {
           connect: {
-            id: demand.userId,
+            id: Number(demand.userId),
           },
         },
       },

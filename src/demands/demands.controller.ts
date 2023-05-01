@@ -33,7 +33,6 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard)
   @Post('create')
   setDemandToUser(@Body() demandInfo) {
-    // console.log(demandInfo, '!!......!!');
     return this.demandsService.createDemandByUser(demandInfo);
   }
 
