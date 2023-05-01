@@ -26,7 +26,7 @@ export class DemandsController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
-  getselfAllDemands(@Param('userId', ParseIntPipe) userId: number) {
+  getselfAllDemands(@Param('userId') userId: string) {
     return this.demandsService.getSelfDemandsByUserId(userId);
   }
 

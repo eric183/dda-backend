@@ -12,7 +12,7 @@ export class DemandsService {
   }
 
   async createDemandByUser(
-    demand: Prisma.DemandCreateInput & { userId: number },
+    demand: Prisma.DemandCreateInput & { userId: string },
   ) {
     console.log(demand, '.,..');
     return this.prisma.demand.create({
@@ -20,7 +20,7 @@ export class DemandsService {
         ...omit(demand, 'userId'),
         User: {
           connect: {
-            id: Number(demand.userId),
+            id: demand.userId,
           },
         },
       },
@@ -35,10 +35,10 @@ export class DemandsService {
     });
   }
 
-  async getSelfDemandsByUserId(userId: number) {
+  async getSelfDemandsByUserId(userId: string) {
     return this.prisma.demand.findMany({
       where: {
-        userId: Number(userId),
+        userId: userId,
       },
     });
   }

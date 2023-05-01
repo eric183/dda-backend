@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 
 import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -37,7 +45,7 @@ export class UsersController {
 
   // @UseGuards(JwtAuthGuard)
   @Get('user/:userId')
-  getUserById(@Param('userId', ParseIntPipe) userId: number) {
+  getUserById(@Param('userId') userId: string) {
     return this.usersService.getUserbyId(userId);
   }
 

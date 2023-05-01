@@ -63,7 +63,7 @@ export class UsersService {
     return await this.prisma.user.findMany();
   }
 
-  async getUserbyId(id: number) {
+  async getUserbyId(id: string) {
     console.log(id, '!!!');
     return await this.prisma.user.findUnique({
       where: {
