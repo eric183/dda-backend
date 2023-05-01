@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { DemandsService } from 'src/demands/demands.service';
@@ -18,8 +26,8 @@ export class DemandsController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
-  getselfAllDemands(@Param() params) {
-    return this.demandsService.getSelfDemandsByUserId(params.userId);
+  getselfAllDemands(@Param('userId', ParseIntPipe) userId: number) {
+    return this.demandsService.getSelfDemandsByUserId(userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -30,8 +38,8 @@ export class DemandsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('count/:user')
-  getselfCount(@Param() user) {
-    return this.demandsService.getSelfDemandCountByUserId(user.userId);
+  @Get('count/:userId')
+  getselfCount(@Param('userId', ParseIntPipe) userId: number) {
+    return this.demandsService.getSelfDemandCountByUserId(userId);
   }
 }
