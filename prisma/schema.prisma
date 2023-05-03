@@ -1,21 +1,8 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// generator client {
-//   provider = "prisma-client-js"
-// }
-
-// datasource db {
-//   provider = "postgresql"
-//   url      = env("DATABASE_URL")
-// }
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  // provider = "postgresql"
   provider = "cockroachdb"
   url      = env("DATABASE_URL")
 }
@@ -24,54 +11,39 @@ model Widget {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 }
 
-// generator client {
-//   provider = "prisma-client-js"
-// }
-
-// datasource db {
-//   provider = "postgresql"
-//   url      = env("DATABASE_URL")
-// }
-
-// model Widget {
-//   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-// }
-
 model User {
-  id       String  @id @default(cuid())
+  id         String    @id @default(cuid())
   username   String?
   email      String    @unique
   password   String
-  demands    Demand[]
   personalId Int?      @unique
+  demands    Demand[]
   personal   Personal?
 }
 
 model Personal {
-  id       String  @id @default(cuid())
+  id       String   @id @default(cuid())
   name     String
   gender   String?
   age      Int?
   location String?
   skills   String[]
+  userId   String   @unique
   user     User     @relation(fields: [userId], references: [id])
-  userId   String       @unique
 }
 
 model Demand {
-  id       String  @id @default(cuid())
-  // status           String
-  created_time DateTime @default(now())
+  id           String     @id @default(cuid())
+  created_time DateTime   @default(now())
   English      String
   Chinese      String
-  demandRole  DemandRole @default(FREE)
-
-  User   User? @relation(fields: [userId], references: [id])
-  userId String ?
+  demandRole   DemandRole @default(FREE)
+  userId       String?
+  User         User?      @relation(fields: [userId], references: [id])
 }
 
 model Category {
-  id       String  @id @default(cuid())
+  id String @id @default(cuid())
 }
 
 enum DemandRole {

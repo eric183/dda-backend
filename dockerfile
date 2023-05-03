@@ -12,7 +12,7 @@ COPY . .
 
 RUN yarn build
 
-EXPOSE 3001
+EXPOSE 8000
 # EXPOSE 49156
 
 CMD ["/bin/sh", "-c", "npx prisma generate && yarn start:prod"]

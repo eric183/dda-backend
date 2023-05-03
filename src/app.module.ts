@@ -12,6 +12,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { DemandsService } from './demands/demands.service';
 import { DemandsModule } from './demands/demands.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { DemandsModule } from './demands/demands.module';
     HashModule,
     AuthModule,
     DemandsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   // providers: [AppService],
