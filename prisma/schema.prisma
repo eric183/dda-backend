@@ -40,10 +40,14 @@ model Demand {
   demandRole   DemandRole @default(FREE)
   userId       String?
   User         User?      @relation(fields: [userId], references: [id])
+  categoryId   String?
+  category     Category?  @relation(fields: [categoryId], references: [id])
 }
 
 model Category {
-  id String @id @default(cuid())
+  id      String   @id @default(cuid())
+  name    String
+  demands Demand[]
 }
 
 enum DemandRole {
