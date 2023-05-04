@@ -49,14 +49,6 @@ export class ChatGateway
 
   async handleConnection(client: Socket) {
     console.log(client, '...!!!');
-    // 监听聊天请求
-    client.on('startChat', (fromUserId: string) => {
-      this.chatService.joinChat(fromUserId, client.id, client);
-    });
-    // 监听消息
-    client.on('sendMessage', (toUser: T2UserType, client: Socket) => {
-      this.chatService.sendMessage(client.id, toUser.id, toUser.message);
-    });
   }
 
   @SubscribeMessage('startChat')

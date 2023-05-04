@@ -40,6 +40,7 @@ export class UsersController {
 
   @Get('users')
   getAllUser() {
+    console.log('users');
     return this.usersService.getALLUsers();
   }
 
