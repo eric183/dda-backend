@@ -3,7 +3,6 @@ generator client {
 }
 
 datasource db {
-  // provider = "cockroachdb"
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
@@ -34,18 +33,23 @@ model Personal {
 }
 
 model Demand {
-  id           String     @id @default(cuid())
-  created_time DateTime   @default(now())
+  id           String       @id @default(cuid())
+  created_time DateTime     @default(now())
   English      String
   Chinese      String
-  demandRole   DemandRole @default(FREE)
+  demandRole   DemandRole   @default(FREE)
   userId       String?
-  User         User?      @relation(fields: [userId], references: [id])
-  categoryId   String
-  category     Category 
+  categoryType CategoryType
+  User         User?        @relation(fields: [userId], references: [id])
 }
 
-enum Category {
+enum DemandRole {
+  NEED
+  SERVER
+  FREE
+}
+
+enum CategoryType {
   Social
   Work
   Home
@@ -56,12 +60,4 @@ enum Category {
   Entertainment
   Transportation
   Finance
-}
-
-
-
-enum DemandRole {
-  NEED
-  SERVER
-  FREE
 }
