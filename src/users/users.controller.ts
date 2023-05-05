@@ -20,6 +20,11 @@ export class UsersController {
     private readonly demandsService: DemandsService,
   ) {}
 
+  @Get('test')
+  getTest(@Param() param) {
+    return '你好呀';
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('email/:email')
   getUserByUsername(@Param() param) {

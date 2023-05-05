@@ -1,18 +1,32 @@
-FROM node:16-alpine
+FROM node:latest
 
 WORKDIR /app
 
+# copy package.json and yarn.lock to the container
+# COPY package.json yarn.lock ./
+COPY .env .env
 COPY package.json .
 COPY yarn.lock .
 COPY src ./src
 COPY prisma ./prisma
 
+# install dependencies
 RUN yarn install
+
+# copy the rest of the files to the container
 COPY . .
 
-RUN yarn build
+ENV DOTENV_CONFIG_PATH=./.env
 
-EXPOSE 8000
-# EXPOSE 49156
+# set environment variables
+ENV NODE_ENV=production
 
-CMD ["/bin/sh", "-c", "npx prisma generate && yarn start:prod"]
+# expose the port
+EXPOSE ${PORT}
+EXPOSE ${SOCKEAT_PORT}
+
+# start the app in production mode
+CMD ["yarn", "start:prod"]
+
+# start the app in development mode with hot reloading
+CMD ["yarn", "dev"]
