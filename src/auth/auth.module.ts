@@ -31,6 +31,7 @@ ConfigModule.forRoot();
     JwtStrategy,
     HashService,
     PrismaService,
+    UsersService,
   ],
   exports: [AuthService],
 })

@@ -13,6 +13,7 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.getUserByMail(email);
+
     if (!user) {
       throw new UnauthorizedException('User does not exist');
     }
@@ -26,7 +27,12 @@ export class AuthService {
   }
 
   async login(user: TUser & { id: string }) {
-    const payload = { email: user.email, id: user.id };
+    console.log(user, 'user...........');
+    const payload = {
+      email: user.email,
+      id: user.id,
+      username: user.username ? user.username : '',
+    };
 
     return {
       access_token: this.jwtService.sign(payload),

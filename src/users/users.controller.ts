@@ -6,14 +6,24 @@ import {
   Param,
   UseGuards,
   ParseIntPipe,
+  Put,
+  Patch,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { DemandsService } from 'src/demands/demands.service';
 import { UsersService } from './users.service';
+type UpdateUsernameDto = {
+  username: string;
+};
 
-@Controller()
+type UpdateUserpasswordDto = {
+  password: string;
+  email: string;
+};
+@Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
@@ -22,39 +32,53 @@ export class UsersController {
 
   @Get('test')
   getTest(@Param() param) {
-    return '你好呀';
+    return '你好';
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('email/:email')
-  getUserByUsername(@Param() param) {
+  @Get(':email')
+  getUserByEmail(@Param() param) {
     return this.usersService.getUserByMail(param.email);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('demand/create')
-  setDemandToUser(@Body() demandInfo) {
-    // console.log(demandInfo, '!!......!!');
-    return this.demandsService.createDemandByUser(demandInfo);
-  }
-
-  @Post('register')
-  registerUser(@Body() createUserDto) {
-    return this.usersService.registerUser(createUserDto);
-  }
-
-  @Get('users')
+  @Get('all')
   getAllUser() {
-    console.log('users');
     return this.usersService.getALLUsers();
   }
 
   // @UseGuards(JwtAuthGuard)
-  @Get('user/:userId')
+  @Get(':userId')
   getUserById(@Param('userId') userId: string) {
     return this.usersService.getUserbyId(userId);
   }
 
+  @Post('password')
+  async resetPWD(
+    @Param('email') email: string,
+    @Body() updateUserpasswordDto: UpdateUserpasswordDto,
+  ) {
+    console.log('shdaf');
+    const user = await this.usersService.getUserByMail(
+      updateUserpasswordDto.email,
+    );
+
+    if (!user) {
+      // throw new UnauthorizedException('User does not exist');
+
+      throw new UnauthorizedException('User does not exist');
+    }
+
+    return this.usersService.resetPWD(user.id, updateUserpasswordDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':userId/usename')
+  updateUsername(
+    @Param('userId') userId: number,
+    @Body() updateUsernameDto: UpdateUsernameDto,
+  ) {
+    return this.usersService.updateUserName(userId, updateUsernameDto);
+  }
   // @UseGuards(JwtAuthGuard)
   // @Get('count/:user')
   // getselfCount(@Param() user) {

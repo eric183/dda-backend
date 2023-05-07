@@ -9,8 +9,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export type Email = string;
 
 export type TUser = {
+  id?: string;
   email: Email;
   password: string;
+  username?: string;
 };
 
 class UserModel {
@@ -68,6 +70,11 @@ export class UsersService {
       where: {
         id: id,
       },
+      select: {
+        email: true,
+        id: true,
+        username: true,
+      },
     });
   }
 
@@ -81,6 +88,7 @@ export class UsersService {
         email: email,
       },
       select: {
+        username: true,
         email: true,
         password: true,
         id: true,
@@ -116,5 +124,37 @@ export class UsersService {
 
     console.log(prismaResponse, '33333');
     return this.userModel.create(createUser);
+  }
+
+  async updateUserName(userId, user): Promise<boolean> {
+    const username = user.username;
+    const prismaResponse = await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        username,
+      },
+    });
+    if (prismaResponse) {
+      return true;
+    }
+    // return prismaResponse;
+  }
+
+  async resetPWD(userId, user): Promise<boolean> {
+    const password = await this.hashService.hashPassword(user.password);
+    const prismaResponse = await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        password,
+      },
+    });
+
+    console.log(prismaResponse, '...password');
+    return true;
+    // return prismaResponse;
   }
 }

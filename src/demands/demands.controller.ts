@@ -6,6 +6,7 @@ import {
   Param,
   UseGuards,
   ParseIntPipe,
+  Request,
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -38,7 +39,7 @@ export class DemandsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('count/:userId')
-  getselfCount(@Param('userId', ParseIntPipe) userId: string) {
+  getselfCount(@Param('userId') userId: string) {
     return this.demandsService.getSelfDemandCountByUserId(userId);
   }
 }
