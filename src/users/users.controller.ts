@@ -32,18 +32,13 @@ export class UsersController {
 
   @Get('test')
   getTest(@Param() param) {
-    return '你好';
+    return this.usersService.getALLUsers();
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':email')
   getUserByEmail(@Param() param) {
     return this.usersService.getUserByMail(param.email);
-  }
-
-  @Get('all')
-  getAllUser() {
-    return this.usersService.getALLUsers();
   }
 
   // @UseGuards(JwtAuthGuard)

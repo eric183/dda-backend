@@ -15,51 +15,12 @@ export type TUser = {
   username?: string;
 };
 
-class UserModel {
-  userInfo: any[];
-  constructor() {
-    this.userInfo = [
-      {
-        userId: 1,
-        username: 'john',
-        password: 'changeme',
-        mail: 'kk297466058@gmail.com',
-      },
-      {
-        userId: 2,
-        username: 'maria',
-        password: 'guess',
-        mail: '297466058@qq.com',
-      },
-    ];
-  }
-
-  validateUserForm(data: Prisma.UserCreateInput) {
-    if (true) {
-      return data;
-    }
-  }
-
-  create(userInfo) {
-    const _userInfo = this.validateUserForm({
-      userId: this.userInfo.length + 1,
-      ...userInfo,
-    });
-
-    this.userInfo.push(_userInfo);
-
-    return true;
-  }
-}
-
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private hashService: HashService,
   ) {}
-
-  userModel = new UserModel();
 
   async getALLUsers() {
     return await this.prisma.user.findMany();
@@ -76,10 +37,6 @@ export class UsersService {
         username: true,
       },
     });
-  }
-
-  async getUserByUsername(username: string): Promise<TUser | undefined> {
-    return this.userModel.userInfo.find((user) => user.username === username);
   }
 
   async getUserByMail(email: Email): Promise<TUser | undefined> {
@@ -122,8 +79,9 @@ export class UsersService {
       data: createUser,
     });
 
-    console.log(prismaResponse, '33333');
-    return this.userModel.create(createUser);
+    if (prismaResponse) {
+      return true;
+    }
   }
 
   async updateUserName(userId, user): Promise<boolean> {
