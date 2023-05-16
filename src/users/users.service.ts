@@ -76,7 +76,10 @@ export class UsersService {
     );
 
     const prismaResponse = await this.prisma.user.create({
-      data: createUser,
+      data: {
+        ...createUser,
+        contacts: {},
+      },
     });
 
     if (prismaResponse) {
