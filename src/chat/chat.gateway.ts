@@ -78,12 +78,8 @@ export class ChatGateway
   }
 
   @SubscribeMessage('sendMessage')
-  sendMessage(
-    @MessageBody()
-    { fromUser, toUser, message }: IRequest,
-    @ConnectedSocket() client: Socket,
-  ) {
-    this.chatService.sendMessage(fromUser.id, this.toUser.id, message, client);
+  sendMessage(@MessageBody() data) {
+    this.chatService.sendMessage(data.fromUserId, data.toUserId, data.message);
   }
 
   async handleDisconnect(

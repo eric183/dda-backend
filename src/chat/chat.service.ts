@@ -69,17 +69,19 @@ export class ChatService {
    * @param toUserId 接受消息的用户id
    * @param message 消息内容
    */
-  async sendMessage(
-    fromUserId: string,
-    toUserId: string,
-    message: string,
-    client?: Socket,
-  ) {
+  async sendMessage(fromUserId: string, toUserId: string, message: string) {
+    const targetClient = this.userSocketMap.get(toUserId);
+
+    targetClient.emit('receiveMessage', {
+      fromUserId,
+      toUserId,
+      message,
+    });
     // this.server
     //   .to(`${fromUserId}-${toUserId}`)
     //   .emit('receiveMessage', { fromUserId, message });
-    client
-      .to(`${fromUserId}-${toUserId}`)
-      .emit('receiveMessage', { fromUserId, message });
+    // client
+    //   .to(`${fromUserId}-${toUserId}`)
+    //   .emit('receiveMessage', { fromUserId, message });
   }
 }
