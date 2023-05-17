@@ -9,6 +9,7 @@ import {
   Put,
   Patch,
   UnauthorizedException,
+  Query,
 } from '@nestjs/common';
 
 import { AuthGuard } from '@nestjs/passport';
@@ -36,14 +37,15 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':email')
+  @Get('email')
   getUserByEmail(@Param() param) {
     return this.usersService.getUserByMail(param.email);
   }
 
-  // @UseGuards(JwtAuthGuard)
-  @Get(':userId')
+  @UseGuards(JwtAuthGuard)
+  @Get('single/:userId')
   getUserById(@Param('userId') userId: string) {
+    console.log(userId, '...');
     return this.usersService.getUserbyId(userId);
   }
 

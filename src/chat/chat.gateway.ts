@@ -44,20 +44,27 @@ export class ChatGateway
   constructor(private readonly chatService: ChatService) {}
 
   async afterInit() {
-    this.logger.verbose('Initialized');
+    this.logger.verbose('Initialized!');
   }
 
   async handleConnection(client: Socket) {
-    console.log(client, '...!!!');
+    // set Socket to the specified user
+    const userId = client.handshake.query.userId as string;
+    this.chatService.setUserSocket(userId, client);
   }
 
   @SubscribeMessage('startChat')
   startChat(
-    @MessageBody()
-    { fromUser, toUser }: IRequest,
+    @MessageBody() { fromUserId, toUserId, message, demandId, type },
     @ConnectedSocket() client: Socket,
   ) {
-    this.chatService.joinChat(fromUser.id, this.toUser.id, client);
+    this.chatService.startChat({
+      fromUserId,
+      toUserId,
+      message,
+      demandId,
+      type,
+    });
   }
 
   @SubscribeMessage('joinChat')
@@ -66,7 +73,8 @@ export class ChatGateway
     { fromUser, toUser }: IRequest,
     @ConnectedSocket() client: Socket,
   ) {
-    this.chatService.joinChat(fromUser.id, this.toUser.id, client);
+    console.log(fromUser, toUser, '!!!!');
+    // this.chatService.joinChat(fromUser.id, this.toUser.id, client);
   }
 
   @SubscribeMessage('sendMessage')
@@ -82,6 +90,6 @@ export class ChatGateway
     @MessageBody()
     { fromUser, toUser }: IRequest,
   ) {
-    this.chatService.leaveChat(fromUser.id, this.toUser.id);
+    // this.chatService.leaveChat(fromUser.id, this.toUser.id);
   }
 }

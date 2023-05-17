@@ -23,6 +23,7 @@ import { ChatModule } from './chat/chat.module';
     HashModule,
     AuthModule,
     DemandsModule,
+    ChatModule,
     // ChatModule,
   ],
   controllers: [AppController],
