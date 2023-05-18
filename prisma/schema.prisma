@@ -3,7 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
+  // provider = "cockroachdb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -12,16 +13,15 @@ model Widget {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  avatar    String?
-  username  String?
-  email     String   @unique
-  password  String
-  gender    String?
-  demands   Demand[]
-  // contactId  String?  @unique // 将 contactId 定义为可选字段
-  contacts   Contact[]
+  id             String   @id @default(cuid())
+  username       String?
+  email          String   @unique
+  password       String
+  avatar         String?
+  gender         String?
   matchedDemands String[]
+  contacts       Contact?
+  demands        Demand[]
 }
 
 model Contact {
@@ -32,17 +32,18 @@ model Contact {
 
 model Demand {
   id           String       @id @default(cuid())
+  title        String
   created_time DateTime     @default(now())
-  end_time     DateTime?
   English      String
   Chinese      String
   demandRole   DemandRole   @default(FREE)
   userId       String?
   categoryType CategoryType
+  end_time     DateTime?
+  image        String?
+  place        String?
+  status       DemandStatus
   User         User?        @relation(fields: [userId], references: [id])
-  status       DemandStatus 
-  place        String
-  image        String
 }
 
 enum DemandRole {
@@ -64,24 +65,9 @@ enum CategoryType {
   Finance
 }
 
-
-// 扩展一个 status 字段，你可以考虑以下的 enum 值：
-
 enum DemandStatus {
   CLOSED
   OPEN
   PENDING
   COMPLETED
 }
-
-// 这些 enum 值可以代表需求的不同状态，例如：
-
-// OPEN：需求已经发布但还没有扩展一个 status 的字段，根据需求不同，选择的 enum 值也会不同。以下是一些可能的选项：
-// CREATED, PENDING, IN_PROGRESS, DONE：适用于需求有多个阶段的情况，比如用户提交了需求，等待被接受、正在处理、已经完成等。
-// OPEN, CLOSED：适用于需求只有两种状态的情况，比如用户提交了需求，可以选其中一个状态，OPEN 表示还未处理，CLOSED 表示已经处理。
-// ACTIVE, INACTIVE：适用于需求需要激活或停用的情况，比如用户提交了需求，可以选择暂时不需要处理，或者需要暂停处理一段时间。
-// HIGH, MEDIUM, LOW：适用于需求有不同的优先级的情况，比如用户提交了需求，需要根据其重要性进行不同的处理。
-// GOOD, NORMAL, BAD：适用于需求处理结果有不同的评价的情况，比如用户提交了需求，可以选择评估结果好、一般或者不好。
-// 需要根据具体的业务逻辑和功能要求来确定选择哪个 enum 值，以上只是一些常见的选项。
-
-// --- 上面的文字是一段 prisma schema, 我想在上面的 schema 中扩展一个 status 的字段，这个 status 应该有哪几个 enum 比较合理呢
