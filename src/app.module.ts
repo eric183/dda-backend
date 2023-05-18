@@ -4,9 +4,6 @@ import { AppService } from './app.service';
 
 import { HashModule } from './hash/hash.module';
 import { UsersModule } from './users/users.module';
-import { AuthService } from './auth/auth.service';
-import { JwtService } from '@nestjs/jwt';
-import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
@@ -24,10 +21,8 @@ import { ChatModule } from './chat/chat.module';
     AuthModule,
     DemandsModule,
     ChatModule,
-    // ChatModule,
   ],
   controllers: [AppController],
-  // providers: [AppService],
   providers: [AppService, PrismaService, DemandsService],
 })
 export class AppModule {}

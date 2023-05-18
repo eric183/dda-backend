@@ -35,6 +35,7 @@ export class UsersService {
         email: true,
         id: true,
         username: true,
+        avatar: true,
       },
     });
   }
@@ -54,10 +55,6 @@ export class UsersService {
   }
 
   async registerUser(createUser): Promise<boolean | TUser> {
-    // const createUser = this.userModel.validateUserForm(createUserDto);
-    // check if user exists
-    console.log(createUser, '...sadf');
-
     const user = await this.getUserByMail(createUser.email as any as Email);
 
     if (user) {
@@ -67,9 +64,6 @@ export class UsersService {
       throw new BadRequestException();
     }
 
-    // console.log(user, '.......user');
-    // this.hashService.hashPassword
-    // Hash Password
     console.log(createUser.password, '!!!');
     createUser.password = await this.hashService.hashPassword(
       createUser.password,
@@ -79,6 +73,7 @@ export class UsersService {
       data: {
         ...createUser,
         contacts: {},
+        matchedDemands: [],
       },
     });
 
@@ -100,7 +95,23 @@ export class UsersService {
     if (prismaResponse) {
       return true;
     }
-    // return prismaResponse;
+  }
+
+  async updateUserAvatar(userId, user): Promise<boolean> {
+    const avatar = user.avatar;
+
+    console.log(avatar, '....');
+    const prismaResponse = await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        avatar,
+      },
+    });
+    if (prismaResponse) {
+      return true;
+    }
   }
 
   async resetPWD(userId, user): Promise<boolean> {
@@ -116,6 +127,5 @@ export class UsersService {
 
     console.log(prismaResponse, '...password');
     return true;
-    // return prismaResponse;
   }
 }

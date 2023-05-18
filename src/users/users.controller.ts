@@ -16,8 +16,13 @@ import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { DemandsService } from 'src/demands/demands.service';
 import { UsersService } from './users.service';
+
 type UpdateUsernameDto = {
   username: string;
+};
+
+type UpdateUserAvatarDto = {
+  avatar: string;
 };
 
 type UpdateUserpasswordDto = {
@@ -60,8 +65,6 @@ export class UsersController {
     );
 
     if (!user) {
-      // throw new UnauthorizedException('User does not exist');
-
       throw new UnauthorizedException('User does not exist');
     }
 
@@ -76,9 +79,13 @@ export class UsersController {
   ) {
     return this.usersService.updateUserName(userId, updateUsernameDto);
   }
-  // @UseGuards(JwtAuthGuard)
-  // @Get('count/:user')
-  // getselfCount(@Param() user) {
-  //   return this.demandsService.getSelfDemandCountByUserId(user.userId);
-  // }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':userId/avatar')
+  udpateAvatar(
+    @Param('userId') userId: number,
+    @Body() updateUserAvatar: UpdateUserAvatarDto,
+  ) {
+    return this.usersService.updateUserAvatar(userId, updateUserAvatar);
+  }
 }

@@ -13,6 +13,7 @@ model Widget {
 
 model User {
   id        String   @id @default(cuid())
+  avatar    String?
   username  String?
   email     String   @unique
   password  String
@@ -20,6 +21,7 @@ model User {
   demands   Demand[]
   // contactId  String?  @unique // 将 contactId 定义为可选字段
   contacts   Contact[]
+  matchedDemands String[]
 }
 
 model Contact {
@@ -31,13 +33,16 @@ model Contact {
 model Demand {
   id           String       @id @default(cuid())
   created_time DateTime     @default(now())
+  end_time     DateTime?
   English      String
   Chinese      String
   demandRole   DemandRole   @default(FREE)
   userId       String?
   categoryType CategoryType
   User         User?        @relation(fields: [userId], references: [id])
-  // status  
+  status       DemandStatus 
+  place        String
+  image        String
 }
 
 enum DemandRole {
@@ -62,12 +67,12 @@ enum CategoryType {
 
 // 扩展一个 status 字段，你可以考虑以下的 enum 值：
 
-// enum Status {
-// OPEN
-// PENDING
-// IN_PROGRESS
-// COMPLETED
-// }
+enum DemandStatus {
+  CLOSED
+  OPEN
+  PENDING
+  COMPLETED
+}
 
 // 这些 enum 值可以代表需求的不同状态，例如：
 
