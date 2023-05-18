@@ -42,8 +42,8 @@ export class ChatService {
   async startChat({ fromUserId, toUserId, message, demandId, type }) {
     // this.helpToUserCreateSocketMap(toUserId);
     const toUserSocket = this.userSocketMap.get(toUserId);
-
-    if (toUserSocket) {
+    console.log(fromUserId, toUserId, !!toUserSocket);
+    if (toUserSocket && toUserSocket.socket) {
       // 接收方在线，向接收方发起聊天请求
       toUserSocket.socket.emit('startChat', {
         fromUserId,
@@ -52,7 +52,7 @@ export class ChatService {
         type,
       });
     } else {
-      console.log('离线');
+      // console.log('离线');
       // 接收方离线，存储聊天请求并等待接收方上线
       // 此处可以根据实际业务需求拓展，比如将请求存储到数据库中
     }
@@ -99,9 +99,10 @@ export class ChatService {
           },
         ],
       });
+      return;
     }
 
-    targetClient?.socket.emit('receiveMessage', {
+    targetClient?.socket?.emit('receiveMessage', {
       fromUserId,
       toUserId,
       message,
