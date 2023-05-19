@@ -72,7 +72,7 @@ export class UsersService {
     const prismaResponse = await this.prisma.user.create({
       data: {
         ...createUser,
-        contacts: {},
+        contacts: [],
         matchedDemands: [],
       },
     });
@@ -100,7 +100,6 @@ export class UsersService {
   async updateUserAvatar(userId, user): Promise<boolean> {
     const avatar = user.avatar;
 
-    console.log(avatar, '....');
     const prismaResponse = await this.prisma.user.update({
       where: {
         id: userId,
@@ -112,6 +111,21 @@ export class UsersService {
     if (prismaResponse) {
       return true;
     }
+  }
+
+  async updateUserContact(userId, toUserId) {
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        contacts: {
+          connect: {
+            userId: toUserId,
+          },
+        },
+      },
+    });
   }
 
   async resetPWD(userId, user): Promise<boolean> {

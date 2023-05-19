@@ -20,7 +20,8 @@ model User {
   avatar         String?
   gender         String?
   matchedDemands String[]
-  contacts       Contact?
+  contacts       Contact[]
+  // contacts       Contact[] @relation("UserContacts", fields: [id], references: [userId])
   demands        Demand[]
 }
 
@@ -28,6 +29,8 @@ model Contact {
   id     String @id @default(cuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
+  // user   User   @relation("UserContacts", fields: [userId], references: [id])
+
 }
 
 model Demand {
@@ -40,10 +43,14 @@ model Demand {
   userId       String?
   categoryType CategoryType
   end_time     DateTime?
-  image        String?
+  image        String[]
   place        String?
   status       DemandStatus
   User         User?        @relation(fields: [userId], references: [id])
+
+
+  // Match Type: place、categoryType 、【DemandRole !=】
+
 }
 
 enum DemandRole {

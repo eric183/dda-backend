@@ -88,4 +88,12 @@ export class UsersController {
   ) {
     return this.usersService.updateUserAvatar(userId, updateUserAvatar);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':userId/contact')
+  udpateContact(@Param('userId') userId: number, @Body() toUserId: string) {
+    console.log(toUserId);
+    return `${toUserId}, 1111`;
+    return this.usersService.updateUserContact(userId, toUserId);
+  }
 }
