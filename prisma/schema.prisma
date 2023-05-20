@@ -76,5 +76,5 @@ enum DemandStatus {
   CLOSED
   OPEN
   PENDING
-  COMPLETED
+  // COMPLETED
 }
