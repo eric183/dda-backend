@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { DemandStatus, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { omit } from 'lodash';
 
@@ -41,5 +41,26 @@ export class DemandsService {
         userId: userId,
       },
     });
+  }
+
+  async updateDemandStatus(id: string, updateDemandStatus: DemandStatus) {
+    const demand = await this.prisma.demand.update({
+      where: {
+        id,
+      },
+      data: {
+        status: updateDemandStatus,
+      },
+    });
+    console.log(demand, '!!!');
+    return {
+      ...demand,
+      status: updateDemandStatus,
+    };
+    // return this.prisma.demand.findMany({
+    //   where: {
+    //     userId: userId,
+    //   },
+    // });
   }
 }

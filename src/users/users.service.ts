@@ -72,7 +72,7 @@ export class UsersService {
     const prismaResponse = await this.prisma.user.create({
       data: {
         ...createUser,
-        contacts: [],
+        // contacts: [],
         matchedDemands: [],
       },
     });

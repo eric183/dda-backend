@@ -3,7 +3,6 @@ generator client {
 }
 
 datasource db {
-  // provider = "cockroachdb"
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
@@ -17,11 +16,10 @@ model User {
   username       String?
   email          String   @unique
   password       String
-  avatar         String?
   gender         String?
+  avatar         String?
   matchedDemands String[]
-  contacts       Contact[]
-  // contacts       Contact[] @relation("UserContacts", fields: [id], references: [userId])
+  contacts       Contact?
   demands        Demand[]
 }
 
@@ -29,13 +27,10 @@ model Contact {
   id     String @id @default(cuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
-  // user   User   @relation("UserContacts", fields: [userId], references: [id])
-
 }
 
 model Demand {
   id           String       @id @default(cuid())
-  title        String
   created_time DateTime     @default(now())
   English      String
   Chinese      String
@@ -43,14 +38,11 @@ model Demand {
   userId       String?
   categoryType CategoryType
   end_time     DateTime?
-  image        String[]
+  image        String?
   place        String?
   status       DemandStatus
+  title        String
   User         User?        @relation(fields: [userId], references: [id])
-
-
-  // Match Type: place、categoryType 、【DemandRole !=】
-
 }
 
 enum DemandRole {
@@ -76,5 +68,5 @@ enum DemandStatus {
   CLOSED
   OPEN
   PENDING
-  // COMPLETED
+  COMPLETED
 }
