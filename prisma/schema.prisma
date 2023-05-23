@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "cockroachdb"
   url      = env("DATABASE_URL")
 }
 
@@ -16,8 +16,8 @@ model User {
   username       String?
   email          String   @unique
   password       String
-  avatar         String?
   gender         String?
+  avatar         String?
   matchedDemands String[]
   contacts       Contact?
   demands        Demand[]
@@ -38,20 +38,22 @@ model Demand {
   userId       String?
   categoryType CategoryType
   end_time     DateTime?
-  placeId      String?
-  place        Place?       @relation(fields: [placeId], references: [id])
   status       DemandStatus
   title        String
   images       String[]
+  placeId      String?
+  place        Place?       @relation(fields: [placeId], references: [id])
   User         User?        @relation(fields: [userId], references: [id])
 }
 
 model Place {
-  id        String   @id @default(cuid())
+  id        String   @unique @default(cuid())
   latitude  Float
   longitude Float
-  name      String
+  name      String @unique
   Demand    Demand[]
+
+  @@unique([id])
 }
 
 enum DemandRole {

@@ -12,15 +12,33 @@ export class DemandsService {
   }
 
   async createDemandByUser(
-    demand: Prisma.DemandCreateInput & { userId: string },
+    demand: Prisma.DemandCreateInput & { userId: string } & {
+      place: {
+        latitude: number;
+        longitude: number;
+        name: string;
+      };
+    },
   ) {
     console.log(demand, '.,..');
     return this.prisma.demand.create({
       data: {
-        ...omit(demand, 'userId'),
+        ...omit(demand, ['userId', 'place']),
         User: {
           connect: {
             id: demand.userId,
+          },
+        },
+        place: {
+          connectOrCreate: {
+            where: {
+              name: demand.place.name,
+            },
+            create: {
+              latitude: demand.place.latitude,
+              longitude: demand.place.longitude,
+              name: demand.place.name,
+            },
           },
         },
       },
