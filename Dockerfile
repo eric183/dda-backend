@@ -4,7 +4,7 @@ WORKDIR /app
 
 # copy package.json and yarn.lock to the container
 # COPY package.json yarn.lock ./
-COPY .env .env
+# COPY .env .env
 COPY package.json .
 COPY yarn.lock .
 COPY src ./src
