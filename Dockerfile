@@ -10,6 +10,9 @@ COPY yarn.lock .
 COPY src ./src
 COPY prisma ./prisma
 
+
+RUN npm install pm2 -g
+
 # install dependencies
 RUN yarn install 
 # copy the rest of the files to the container
@@ -25,6 +28,8 @@ ENV NODE_ENV=production
 EXPOSE ${PORT}
 EXPOSE ${SOCKEAT_PORT}
 
+
+# CMD ["pm2-runtime", ""]
 # start the app in production mode
 CMD ["yarn", "start:prod"]
 
