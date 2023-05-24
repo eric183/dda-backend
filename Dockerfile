@@ -11,12 +11,11 @@ COPY src ./src
 COPY prisma ./prisma
 
 # install dependencies
-RUN yarn install
-RUN yarn build
-
+RUN yarn install 
 # copy the rest of the files to the container
 COPY . .
 
+RUN yarn build
 # ENV DOTENV_CONFIG_PATH=./.env
 
 # set environment variables
