@@ -12,6 +12,7 @@ COPY prisma ./prisma
 
 # install dependencies
 RUN yarn install
+RUN yarn build
 
 # copy the rest of the files to the container
 COPY . .
