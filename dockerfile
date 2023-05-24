@@ -29,4 +29,4 @@ EXPOSE ${SOCKEAT_PORT}
 CMD ["yarn", "start:prod"]
 
 # start the app in development mode with hot reloading
-CMD ["yarn", "dev"]
+# CMD ["yarn", "dev"]
