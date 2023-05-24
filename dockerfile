@@ -16,7 +16,7 @@ RUN yarn install
 # copy the rest of the files to the container
 COPY . .
 
-ENV DOTENV_CONFIG_PATH=./.env
+# ENV DOTENV_CONFIG_PATH=./.env
 
 # set environment variables
 ENV NODE_ENV=production
