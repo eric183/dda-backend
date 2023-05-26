@@ -19,7 +19,7 @@ model User {
   gender         String?
   avatar         String?
   matchedDemands String[]
-  contacts       Contact?
+  contacts       Contact[]
   demands        Demand[]
 }
 

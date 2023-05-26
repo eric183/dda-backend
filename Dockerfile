@@ -22,7 +22,7 @@ RUN yarn build
 ENV NODE_ENV=production
 
 # expose the port
-EXPOSE ${PORT}
+EXPOSE ${SERVER_PORT}
 EXPOSE ${SOCKEAT_PORT}
 
 # start the app in production mode
