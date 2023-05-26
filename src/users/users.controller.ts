@@ -47,10 +47,9 @@ export class UsersController {
     return this.usersService.getUserByMail(param.email);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get('single/:userId')
   getUserById(@Param('userId') userId: string) {
-    console.log(userId, '...');
     return this.usersService.getUserbyId(userId);
   }
 

@@ -3,7 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
+  provider = "postgresql"
+  // cockroachdb
   url      = env("DATABASE_URL")
 }
 
@@ -12,15 +13,16 @@ model Widget {
 }
 
 model User {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   username       String?
-  email          String   @unique
+  email          String    @unique
   password       String
   gender         String?
   avatar         String?
   matchedDemands String[]
-  contacts       Contact?
+  contacts       Contact[]
   demands        Demand[]
+  @@unique([id])
 }
 
 model Contact {
@@ -47,10 +49,10 @@ model Demand {
 }
 
 model Place {
-  id        String   @unique @default(cuid())
+  id        String   @default(cuid())
   latitude  Float
   longitude Float
-  name      String @unique
+  name      String   @unique
   Demand    Demand[]
 
   @@unique([id])
