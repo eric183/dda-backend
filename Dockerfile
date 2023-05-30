@@ -25,7 +25,7 @@ RUN yarn build
 ENV NODE_ENV=production
 
 # expose the port
-EXPOSE ${SERVER_PORT}
+EXPOSE ${PORT}
 EXPOSE ${SOCKET_PORT}
 
 
