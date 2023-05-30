@@ -27,7 +27,7 @@ interface IRequest {
 
 @Injectable()
 // @WebSocketGateway(Number(process.env.SOCKET_PORT), { cors: true })
-@WebSocketGateway(8081, { cors: { origin: "*" } })
+@WebSocketGateway(80, { namespace: 'events', cors: true })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
