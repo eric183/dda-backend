@@ -1,5 +1,4 @@
-import { Injectable, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 
 // @UseGuards(AuthGuard)
@@ -26,7 +25,7 @@ export class ChatService {
     });
   }
 
-  async helpToUserCreateSocketMap(userId: string) {}
+  // async helpToUserCreateSocketMap(userId: string) {}
 
   async getUserSocket(id: string) {
     return this.userSocketMap.get(id);
@@ -42,8 +41,8 @@ export class ChatService {
   async startChat({ fromUserId, toUserId, message, demandId, type }) {
     // this.helpToUserCreateSocketMap(toUserId);
     const toUserSocket = this.userSocketMap.get(toUserId);
-    console.log(fromUserId, toUserId, !!toUserSocket);
     if (toUserSocket && toUserSocket.socket) {
+      console.log(fromUserId, toUserId, toUserSocket.socket);
       // 接收方在线，向接收方发起聊天请求
       toUserSocket.socket.emit('startChat', {
         fromUserId,

@@ -7,7 +7,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsResponse,
 } from '@nestjs/websockets';
 
 import { Injectable, Logger } from '@nestjs/common';
@@ -27,7 +26,7 @@ interface IRequest {
 }
 
 @Injectable()
-@WebSocketGateway(8081, { cors: true })
+@WebSocketGateway(Number(process.env.SOCKET_PORT), { cors: true })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -49,6 +48,7 @@ export class ChatGateway
 
   async handleConnection(client: Socket) {
     // set Socket to the specified user
+    console.log('connected');
     const userId = client.handshake.query.userId as string;
     this.chatService.setUserSocket(userId, client);
   }
