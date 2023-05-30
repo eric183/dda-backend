@@ -43,7 +43,7 @@ export class ChatGateway
   constructor(private readonly chatService: ChatService) {}
 
   async afterInit() {
-    this.logger.verbose('Initialized!');
+    this.logger.verbose('Socket Initialized!!!!');
   }
 
   async handleConnection(client: Socket) {
