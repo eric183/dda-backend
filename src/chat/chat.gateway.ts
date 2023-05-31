@@ -27,7 +27,7 @@ interface IRequest {
 
 @Injectable()
 // @WebSocketGateway(Number(process.env.SOCKET_PORT), { cors: true })
-@WebSocketGateway(8888, { cors: true })
+@WebSocketGateway({ namespace: 'events', cors: true })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -51,6 +51,8 @@ export class ChatGateway
     // set Socket to the specified user
     console.log('connected');
     const userId = client.handshake.query.userId as string;
+
+    client.emit('connection', 'success');
     this.chatService.setUserSocket(userId, client);
   }
 
