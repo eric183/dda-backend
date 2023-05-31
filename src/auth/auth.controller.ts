@@ -76,7 +76,7 @@ export class AuthController {
   async registerUser(@Body() createUserDto) {
     const code = Math.floor(Math.random() * 1000000);
 
-    this.sendMailVerification({
+    await this.sendMailVerification({
       to: createUserDto.email,
       context: {
         email: createUserDto.email,

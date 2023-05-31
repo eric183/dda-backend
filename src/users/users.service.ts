@@ -139,7 +139,7 @@ export class UsersService {
       throw new BadRequestException();
     }
 
-    console.log(createUser.password, '!!!');
+    console.log(createUser.password, 'registerUser password.......');
     createUser.password = await this.hashService.hashPassword(
       createUser.password,
     );
