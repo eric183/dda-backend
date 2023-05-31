@@ -39,9 +39,9 @@ export class AuthController {
   @Get('verify/:email/:code')
   async verifyEmail(@Param() params) {
     const { email, code } = params;
-
+    console.log(params, 'params !!!!')
     // verifiedCode
-    const ifVerified = await this.usersService.verifyCode(email, code);
+    const ifVerified = await this.usersService.verifyCode(email, code.toString());
 
     if (ifVerified) {
       return this.usersService.verifyEmail(email);
@@ -88,7 +88,7 @@ export class AuthController {
 
     return this.usersService.registerUser({
       ...createUserDto,
-      verifiedCode: code,
+      verifiedCode: code.toString(),
     });
   }
 
