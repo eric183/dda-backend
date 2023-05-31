@@ -17,6 +17,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User does not exist');
     }
+
     const ifPass = await this.hashService.comparePassword(pass, user.password);
     if (user && ifPass) {
       // const { password, ...result } = user;
@@ -27,7 +28,6 @@ export class AuthService {
   }
 
   async login(user: TUser & { id: string }) {
-    console.log(user, 'user...........');
     const payload = {
       email: user.email,
       id: user.id,
@@ -36,6 +36,17 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  async verifyToken(token: string) {
+    const cleanToken = token.replace('Bearer', '').trim();
+    const user = await this.jwtService.verify(cleanToken);
+    const verified = await this.usersService.checkUserVerified(user.email);
+
+    return {
+      ...user,
+      verified,
     };
   }
 }

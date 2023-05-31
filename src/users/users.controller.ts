@@ -58,7 +58,6 @@ export class UsersController {
     @Param('email') email: string,
     @Body() updateUserpasswordDto: UpdateUserpasswordDto,
   ) {
-    console.log('shdaf');
     const user = await this.usersService.getUserByMail(
       updateUserpasswordDto.email,
     );

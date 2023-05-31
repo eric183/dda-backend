@@ -10,6 +10,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { DemandsService } from './demands/demands.service';
 import { DemandsModule } from './demands/demands.module';
 import { ChatModule } from './chat/chat.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ChatModule } from './chat/chat.module';
     AuthModule,
     DemandsModule,
     ChatModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, DemandsService],

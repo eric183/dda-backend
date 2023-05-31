@@ -1,0 +1,64 @@
+!DOCTYPE html>
+<html>
+<head>
+	<title>Welcome to our newsletter</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style type="text/css">
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f1f1f1;
+			padding: 20px;
+			line-height: 1.5;
+			color: #333;
+		}
+		h1, h2, h3, p {
+			margin: 0;
+			padding: 0;
+		}
+		h1 {
+			font-size: 36px;
+			font-weight: bold;
+			margin-bottom: 20px;
+		}
+		h2 {
+			font-size: 28px;
+			font-weight: bold;
+			margin-bottom: 15px;
+		}
+		hr {
+			border-top: 1px solid #ccc;
+			margin: 30px 0;
+		}
+		.container {
+			background-color: #fff;
+			padding: 40px;
+			border-radius: 5px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+		}
+		.btn {
+			display: inline-block;
+			background-color: #4CAF50;
+			color: #fff;
+			padding: 10px 20px;
+			border-radius: 5px;
+			text-decoration: none;
+			margin: 20px 0 40px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>Welcome to our newsletter</h1>
+		<p>Dear {{username}},</p>
+		<p>We're happy to have you as a subscriber to our newsletter. Here are some updates and news for you:</p>
+		{{!-- <h2>{{title1}}</h2>
+		<p>{{description1}}</p> --}}
+		<hr>
+		{{!-- <h2>{{title2}}</h2>
+		<p>{{description2}}</p> --}}
+		<p>Thank you for reading our newsletter. If you have any questions or feedback, please don't hesitate to contact us.</p>
+		<a href="{{authUrl}}{{email}}/{{code}}" class="btn">click me to verification</a>
+	</div>
+</body>
+</html>

@@ -26,6 +26,38 @@ export class UsersService {
     return await this.prisma.user.findMany();
   }
 
+  async checkUserVerified(email: Email): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      select: {
+        verified: true,
+      },
+    });
+
+    if (user) {
+      return user.verified;
+    }
+  }
+
+  async checkUserExist(email: Email): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      select: {
+        email: true,
+      },
+    });
+
+    if (user) {
+      return true;
+    }
+
+    return false;
+  }
+
   async getUserbyId(id: string) {
     const user = await this.prisma.user.findUnique({
       where: {
@@ -36,6 +68,7 @@ export class UsersService {
         id: true,
         username: true,
         avatar: true,
+        verified: true,
       },
     });
 
@@ -52,8 +85,48 @@ export class UsersService {
         email: true,
         password: true,
         id: true,
+        verified: true,
       },
     });
+  }
+
+  async verifyCode(email: string, code: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+      select: {
+        verifiedCode: true,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        "User doesn't exist, please register first",
+      );
+    }
+
+    if (user.verifiedCode === code) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async verifyEmail(email: Email): Promise<boolean> {
+    const prismaResponse = await this.prisma.user.update({
+      where: {
+        email: email,
+      },
+      data: {
+        verified: true,
+        verifiedCode: '',
+      },
+    });
+
+    if (prismaResponse) {
+      return true;
+    }
   }
 
   async registerUser(createUser): Promise<boolean | TUser> {

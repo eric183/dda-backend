@@ -10,6 +10,8 @@ import { ConfigModule } from '@nestjs/config';
 import { HashService } from 'src/hash/hash.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtStrategy } from './jwt.strategy';
+import { MailService } from 'src/mail/mail.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 ConfigModule.forRoot();
 
@@ -31,7 +33,7 @@ ConfigModule.forRoot();
     JwtStrategy,
     HashService,
     PrismaService,
-    UsersService,
+    MailService,
   ],
   exports: [AuthService],
 })
