@@ -14,12 +14,12 @@ ConfigModule.forRoot();
         host: 'smtp.gmail.com',
         secure: true,
         auth: {
-          user: process.env.MAIL_USER,
-          pass: process.env.MAIL_PASSWORD,
+          user: 'kk297466058@gmail.com',
+          pass: 'ixxuzqwxxxvlfogo',
         },
       }, // デフォルトでの送信元メールアドレスの設定
       defaults: {
-        from: process.env.MAIL_FROM,
+        from: 'kk297466058@gmail.com',
       },
       // テンプレートの設定
       template: {
