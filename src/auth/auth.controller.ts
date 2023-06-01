@@ -14,6 +14,8 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { TUser, UsersService } from 'src/users/users.service';
 import { MailService } from 'src/mail/mail.service';
 import { check } from 'prettier';
+import { AuthUser } from 'src/decorators/auth';
+
 // import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
@@ -30,6 +32,7 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  // @AuthUser()
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req: { user: Omit<TUser, 'password'> }) {

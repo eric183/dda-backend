@@ -48,6 +48,16 @@ model Demand {
   User         User?        @relation(fields: [userId], references: [id])
 }
 
+model InstaceAI {
+  id        String @id @default(cuid())
+  created   DateTime @default(now())
+  title     String
+  group     String
+  name      String  
+  type      String
+  key       String
+}
+
 model Place {
   id        String   @unique @default(cuid())
   latitude  Float
