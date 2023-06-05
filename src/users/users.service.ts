@@ -136,7 +136,7 @@ export class UsersService {
       console.log('已经存在的用户');
       return user;
 
-      throw new BadRequestException();
+      // throw new BadRequestException();
     }
 
     console.log(createUser.password, 'registerUser password.......');
@@ -151,6 +151,7 @@ export class UsersService {
         matchedDemands: [],
       },
     });
+    // const prismaResponse = await this.prisma.user.
 
     if (prismaResponse) {
       return true;

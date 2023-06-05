@@ -42,9 +42,12 @@ export class AuthController {
   @Get('verify/:email/:code')
   async verifyEmail(@Param() params) {
     const { email, code } = params;
-    console.log(params, 'params !!!!')
+    console.log(params, 'params !!!!');
     // verifiedCode
-    const ifVerified = await this.usersService.verifyCode(email, code.toString());
+    const ifVerified = await this.usersService.verifyCode(
+      email,
+      code.toString(),
+    );
 
     if (ifVerified) {
       return this.usersService.verifyEmail(email);
@@ -66,7 +69,7 @@ export class AuthController {
 
   @Post('checkEmail')
   async checkEmail(@Body() { email }) {
-    const ifUserExist = await this.usersService.getUserByMail(email);
+    const ifUserExist = await this.usersService.checkUserExist(email);
 
     if (ifUserExist) {
       throw new Error('User already exist');
@@ -78,16 +81,27 @@ export class AuthController {
   @Post('register')
   async registerUser(@Body() createUserDto) {
     const code = Math.floor(Math.random() * 1000000);
+    console.log(createUserDto, 'register.....');
 
-    await this.sendMailVerification({
-      to: createUserDto.email,
-      context: {
-        email: createUserDto.email,
-        username: createUserDto.username,
-        authUrl: process.env.MAIL_AUTH_URL,
-        code,
-      },
-    });
+    const ifUserExist = await this.usersService.checkUserExist(
+      createUserDto.email,
+    );
+
+    const isUserVerified = this.usersService.checkUserVerified(
+      createUserDto.email,
+    );
+
+    if (!isUserVerified) {
+      await this.sendMailVerification({
+        to: createUserDto.email,
+        context: {
+          email: createUserDto.email,
+          username: createUserDto.username,
+          authUrl: process.env.MAIL_AUTH_URL,
+          code,
+        },
+      });
+    }
 
     return this.usersService.registerUser({
       ...createUserDto,
