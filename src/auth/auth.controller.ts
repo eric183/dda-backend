@@ -15,6 +15,7 @@ import { TUser, UsersService } from 'src/users/users.service';
 import { MailService } from 'src/mail/mail.service';
 import { check } from 'prettier';
 import { AuthUser } from 'src/decorators/auth';
+import { omit } from 'lodash';
 
 // import { JwtAuthGuard } from './jwt-auth.guard';
 
@@ -25,6 +26,10 @@ export class AuthController {
     private usersService: UsersService,
     private mailService: MailService,
   ) {}
+
+  getCode() {
+    return Math.floor(Math.random() * 1000000).toString();
+  }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -58,13 +63,17 @@ export class AuthController {
   }
 
   @Post('sendMailVerification')
-  sendMailVerification(@Body() { to, context }) {
+  async sendMailVerification(@Body() { to, context }) {
     // this.userVerificationMap.set(body.email, code);
 
     return this.mailService.sendMail({
       to,
       subject: 'Email Verification',
-      context,
+      context: {
+        ...context,
+        authUrl: process.env.MAIL_AUTH_URL,
+        code: context.code ? context.code : this.getCode(),
+      },
     });
   }
 
@@ -81,9 +90,9 @@ export class AuthController {
 
   @Post('googleAuth')
   async googleAuth(@Body() body) {
-    const ifUserExist = await this.usersService.checkUserExist(body.email);
+    const isUserExsit = await this.usersService.checkUserExist(body.email);
 
-    const isUserVerified = this.usersService.checkUserVerified(body.email);
+    // const isUserVerified = this.usersService.checkUserVerified(body.email);
 
     // if (!isUserVerified) {
     //   await this.sendMailVerification({
@@ -97,26 +106,50 @@ export class AuthController {
     //   });
     // }
 
-    if (ifUserExist) {
-      console.log(body, 'user exist');
-    }
+    const code = isUserExsit ? '' : this.getCode();
+    const currentUserInfo = await this.usersService.updateOrCreate0AuthUser({
+      ...body,
+      verifiedCode: code,
+      credentialType: 'GOOGLE',
+    });
 
-    if (body.authCode) {
-      this.authService.login({
-        email: body.email,
-        authCode: body.authCode,
+    if (!isUserExsit) {
+      console.log('用户不存在，创建新用户');
+
+      this.sendMailVerification({
+        to: body.email,
+        context: body,
       });
     }
+
+    const tokenInfo = await this.authService.login({
+      email: body.email,
+      authToken: body.authToken,
+      authExpiresAt: body.authExpiresAt,
+    });
+    return {
+      ...omit(currentUserInfo, 'password'),
+      ...tokenInfo,
+    };
   }
 
   @Post('register')
   async registerUser(@Body() createUserDto) {
-    const code = Math.floor(Math.random() * 1000000);
-    console.log(createUserDto, 'register.....');
+    const code = this.getCode();
+
+    await this.sendMailVerification({
+      to: createUserDto.email,
+      context: {
+        email: createUserDto.email,
+        username: createUserDto.username,
+        authUrl: process.env.MAIL_AUTH_URL,
+        code,
+      },
+    });
 
     return this.usersService.registerUser({
       ...createUserDto,
-      verifiedCode: code.toString(),
+      verifiedCode: code,
     });
   }
 

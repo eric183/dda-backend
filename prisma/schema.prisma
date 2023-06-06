@@ -22,9 +22,10 @@ model User {
   verified       Boolean   @default(false)
   verifiedCode   String?
   openId         String?
-  authExpiresAt  DateTime?
+  authExpiresAt  String?
   authToken      String?
-  contacts       Contact?
+  credentialType  Credential  @default(EMAIL)
+  contacts       Contact[]
   demands        Demand[]
 }
 
@@ -93,4 +94,11 @@ enum DemandStatus {
   OPEN
   PENDING
   COMPLETED
+}
+
+
+enum Credential {
+  EMAIL
+  PHONE
+  GOOGLE
 }

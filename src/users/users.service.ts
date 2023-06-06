@@ -59,6 +59,7 @@ export class UsersService {
   }
 
   async getUserbyId(id: string) {
+    console.log(id, 'logId');
     const user = await this.prisma.user.findUnique({
       where: {
         id: id,
@@ -86,6 +87,7 @@ export class UsersService {
         password: true,
         id: true,
         verified: true,
+        avatar: true,
       },
     });
   }
@@ -127,6 +129,18 @@ export class UsersService {
     if (prismaResponse) {
       return true;
     }
+  }
+
+  async updateOrCreate0AuthUser(user, updateObj = {}): Promise<any> {
+    const prismaResponse = await this.prisma.user.upsert({
+      where: {
+        email: user.email,
+      },
+      update: updateObj,
+      create: user,
+    });
+
+    return prismaResponse;
   }
 
   async registerUser(createUser): Promise<boolean | TUser> {

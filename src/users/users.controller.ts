@@ -50,6 +50,7 @@ export class UsersController {
   // @UseGuards(JwtAuthGuard)
   @Get('single/:userId')
   getUserById(@Param('userId') userId: string) {
+    console.log(userId, 'userId.....');
     return this.usersService.getUserbyId(userId);
   }
 

@@ -29,30 +29,31 @@ export class AuthService {
 
   async login(
     user: Partial<TUser> & { id?: string } & {
-      authCode: string;
+      authToken: string;
       email: string;
+      authExpiresAt: string;
     },
   ) {
-    console.log(user, 'loginuser.....');
     const payload = {
       email: user.email,
       id: user.id,
       username: user.username ? user.username : '',
     };
+    const result = await this.jwtService.sign(payload);
 
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: result,
     };
   }
 
   async verifyToken(token: string) {
-    const cleanToken = token.replace('Bearer', '').trim();
-    const user = await this.jwtService.verify(cleanToken);
-    const verified = await this.usersService.checkUserVerified(user.email);
+    const user = await this.jwtService.verify(token);
+
+    const found_user = await this.usersService.getUserByMail(user.email.trim());
 
     return {
       ...user,
-      verified,
+      ...found_user,
     };
   }
 }
