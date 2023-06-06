@@ -27,7 +27,13 @@ export class AuthService {
     return null;
   }
 
-  async login(user: TUser & { id: string }) {
+  async login(
+    user: Partial<TUser> & { id?: string } & {
+      authCode: string;
+      email: string;
+    },
+  ) {
+    console.log(user, 'loginuser.....');
     const payload = {
       email: user.email,
       id: user.id,

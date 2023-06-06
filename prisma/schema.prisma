@@ -3,7 +3,6 @@ generator client {
 }
 
 datasource db {
-  // provider = "cockroachdb"
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
@@ -13,20 +12,20 @@ model Widget {
 }
 
 model User {
-  id             String   @id @unique @default(cuid())
-  openId       String?
+  id             String    @id @unique @default(cuid())
   username       String?
-  verified       Boolean  @default(false)
-  verifiedCode   String?
-  email          String   @unique
+  email          String    @unique
   password       String
   gender         String?
   avatar         String?
   matchedDemands String[]
-  contacts       Contact[]
+  verified       Boolean   @default(false)
+  verifiedCode   String?
+  openId         String?
+  authExpiresAt  DateTime?
+  authToken      String?
+  contacts       Contact?
   demands        Demand[]
-  authToken       String?
-  authExpiresAt   DateTime?
 }
 
 model Contact {
@@ -53,13 +52,13 @@ model Demand {
 }
 
 model InstaceAI {
-  id        String @id @default(cuid())
-  created   DateTime @default(now())
-  title     String
-  group     String
-  name      String  
-  type      String
-  key       String
+  id      String   @id @default(cuid())
+  created DateTime @default(now())
+  title   String
+  group   String
+  name    String
+  type    String
+  key     String
 }
 
 model Place {

@@ -29,6 +29,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req) {
+    console.log(req, 'loginReq!!!!');
     return this.authService.login(req.user);
   }
 
@@ -78,30 +79,40 @@ export class AuthController {
     return true;
   }
 
+  @Post('googleAuth')
+  async googleAuth(@Body() body) {
+    const ifUserExist = await this.usersService.checkUserExist(body.email);
+
+    const isUserVerified = this.usersService.checkUserVerified(body.email);
+
+    // if (!isUserVerified) {
+    //   await this.sendMailVerification({
+    //     to: body.email,
+    //     context: {
+    //       email: body.email,
+    //       username: body.username,
+    //       authUrl: process.env.MAIL_AUTH_URL,
+    //       code,
+    //     },
+    //   });
+    // }
+
+    if (ifUserExist) {
+      console.log(body, 'user exist');
+    }
+
+    if (body.authCode) {
+      this.authService.login({
+        email: body.email,
+        authCode: body.authCode,
+      });
+    }
+  }
+
   @Post('register')
   async registerUser(@Body() createUserDto) {
     const code = Math.floor(Math.random() * 1000000);
     console.log(createUserDto, 'register.....');
-
-    const ifUserExist = await this.usersService.checkUserExist(
-      createUserDto.email,
-    );
-
-    const isUserVerified = this.usersService.checkUserVerified(
-      createUserDto.email,
-    );
-
-    if (!isUserVerified) {
-      await this.sendMailVerification({
-        to: createUserDto.email,
-        context: {
-          email: createUserDto.email,
-          username: createUserDto.username,
-          authUrl: process.env.MAIL_AUTH_URL,
-          code,
-        },
-      });
-    }
 
     return this.usersService.registerUser({
       ...createUserDto,

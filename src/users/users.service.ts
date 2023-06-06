@@ -204,6 +204,18 @@ export class UsersService {
     });
   }
 
+  async updateUserToken(email, { authToken, authExpiresAt }) {
+    await this.prisma.user.update({
+      where: {
+        email: email,
+      },
+      data: {
+        authToken,
+        authExpiresAt,
+      },
+    });
+  }
+
   async resetPWD(userId, user): Promise<boolean> {
     const password = await this.hashService.hashPassword(user.password);
     const prismaResponse = await this.prisma.user.update({
