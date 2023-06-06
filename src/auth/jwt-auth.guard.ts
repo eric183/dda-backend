@@ -25,11 +25,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     //   return false;
     // }
 
-    // console.log(request.url, await result, '....result');
-
     if (token !== 'null') {
       const user = await this.authService?.verifyToken(token);
-      console.log(user, '....result');
 
       if (result && user && user.verified) {
         return result;
@@ -52,8 +49,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err: any, user: any) {
-    console.log(user, 'user....');
-
     if (err || !user) {
       throw err || new UnauthorizedException();
     }
