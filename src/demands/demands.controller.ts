@@ -26,18 +26,20 @@ export class DemandsController {
     private readonly demandsService: DemandsService,
   ) {}
 
-  @Get('core')
+  @Get('cores')
   getCore() {
     return this.demandsService.getCore();
   }
 
-  @Post('core/create')
+  @Post('core')
   createCore() {
     return this.demandsService.createCore();
   }
 
-  @Patch('/:id/updateCore')
+  @Patch('/:id/core')
   updateCoreToken(@Param('id') id: string, @Body() coreInfo: any) {
+    console.log(id, 'id');
+    console.log(coreInfo, 'coreInfo');
     return this.demandsService.updateCore(id, {
       token: coreInfo.coreToken,
       prompt: coreInfo.corePrompt,
