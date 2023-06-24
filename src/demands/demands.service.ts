@@ -39,6 +39,7 @@ export class DemandsService {
       create: {
         token: core.token,
         prompt: core.prompt,
+        matchingPrompt: core.matchingPrompt,
       },
     });
   }

@@ -42,6 +42,7 @@ export class DemandsController {
     return this.demandsService.updateCore(id, {
       token: coreInfo.token,
       prompt: coreInfo.prompt,
+      matchingPrompt: coreInfo.matchingPrompt,
     });
   }
 

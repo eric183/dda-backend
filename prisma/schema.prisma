@@ -75,6 +75,7 @@ model Core {
 
   token       String
   prompt      String
+  matchingPrompt String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
