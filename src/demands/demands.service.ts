@@ -8,7 +8,12 @@ export class DemandsService {
   constructor(private prisma: PrismaService) {}
 
   async getAllDemands() {
-    return this.prisma.demand.findMany();
+    return this.prisma.demand.findMany({
+      include: {
+        User: true,
+        place: true,
+      },
+    });
   }
 
   async createDemandByUser(
