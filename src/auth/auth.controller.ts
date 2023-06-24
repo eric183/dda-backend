@@ -72,7 +72,7 @@ export class AuthController {
       context: {
         ...context,
         authUrl: process.env.MAIL_AUTH_URL,
-        code: context.code ? context.code : this.getCode(),
+        code: context.code,
       },
     });
   }
@@ -92,20 +92,6 @@ export class AuthController {
   async googleAuth(@Body() body) {
     const isUserExsit = await this.usersService.checkUserExist(body.email);
 
-    // const isUserVerified = this.usersService.checkUserVerified(body.email);
-
-    // if (!isUserVerified) {
-    //   await this.sendMailVerification({
-    //     to: body.email,
-    //     context: {
-    //       email: body.email,
-    //       username: body.username,
-    //       authUrl: process.env.MAIL_AUTH_URL,
-    //       code,
-    //     },
-    //   });
-    // }
-
     const code = isUserExsit ? '' : this.getCode();
     const currentUserInfo = await this.usersService.updateOrCreate0AuthUser({
       ...body,
@@ -118,7 +104,10 @@ export class AuthController {
 
       this.sendMailVerification({
         to: body.email,
-        context: body,
+        context: {
+          ...body,
+          code: currentUserInfo.verifiedCode,
+        },
       });
     }
 

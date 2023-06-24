@@ -17,14 +17,14 @@ export class DemandsService {
   }
 
   async getCore() {
-    return this.prisma.core.findMany();
+    const cores = await this.prisma.core.findMany();
+
+    return cores[0] ? cores[0] : {};
   }
-  async createCore() {
+
+  async createCore(coreInfo) {
     return this.prisma.core.create({
-      data: {
-        token: 'test',
-        prompt: 'test',
-      },
+      data: coreInfo,
     });
   }
 

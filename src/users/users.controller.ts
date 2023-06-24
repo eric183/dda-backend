@@ -36,7 +36,7 @@ export class UsersController {
     private readonly demandsService: DemandsService,
   ) {}
 
-  @Get('test')
+  @Get('getAllUsers')
   getTest(@Param() param) {
     return this.usersService.getALLUsers();
   }
