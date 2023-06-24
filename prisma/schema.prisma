@@ -70,6 +70,15 @@ model Place {
   Demand    Demand[]
 }
 
+model Core {
+  id        String   @unique @default(cuid())
+
+  token       String
+  prompt      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum DemandRole {
   NEED
   SERVER

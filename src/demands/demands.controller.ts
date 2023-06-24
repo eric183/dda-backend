@@ -26,6 +26,21 @@ export class DemandsController {
     private readonly demandsService: DemandsService,
   ) {}
 
+  @Get('core')
+  getCore() {
+    return this.demandsService.getCore();
+  }
+
+  @Patch('/:id/coreToken')
+  updateCoreToken(@Param('id') id: string, @Body() coreInfo: any) {
+    return this.demandsService.updateToken(id, coreInfo.coreToken);
+  }
+
+  @Patch('/:id/corePrompt')
+  updateCorePrompt(@Param('id') id: string, @Body() coreInfo: any) {
+    return this.demandsService.updatePrompt(id, coreInfo.coreToken);
+  }
+
   @Get('all')
   getAllDemands() {
     return this.demandsService.getAllDemands();

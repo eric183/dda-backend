@@ -16,6 +16,32 @@ export class DemandsService {
     });
   }
 
+  async getCore() {
+    return this.prisma.core.findMany();
+  }
+
+  async updateToken(id: string, token) {
+    return this.prisma.core.update({
+      where: {
+        id,
+      },
+      data: {
+        token,
+      },
+    });
+  }
+
+  async updatePrompt(id: string, prompt) {
+    const core = this.prisma.core.update({
+      where: {
+        id,
+      },
+      data: {
+        prompt,
+      },
+    });
+  }
+
   async createDemandByUser(
     demand: Prisma.DemandCreateInput & { userId: string } & {
       place: {
