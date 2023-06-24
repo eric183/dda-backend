@@ -31,14 +31,17 @@ export class DemandsController {
     return this.demandsService.getCore();
   }
 
-  @Patch('/:id/coreToken')
-  updateCoreToken(@Param('id') id: string, @Body() coreInfo: any) {
-    return this.demandsService.updateToken(id, coreInfo.coreToken);
+  @Post('core/create')
+  createCore() {
+    return this.demandsService.createCore();
   }
 
-  @Patch('/:id/corePrompt')
-  updateCorePrompt(@Param('id') id: string, @Body() coreInfo: any) {
-    return this.demandsService.updatePrompt(id, coreInfo.coreToken);
+  @Patch('/:id/updateCore')
+  updateCoreToken(@Param('id') id: string, @Body() coreInfo: any) {
+    return this.demandsService.updateCore(id, {
+      token: coreInfo.coreToken,
+      prompt: coreInfo.corePrompt,
+    });
   }
 
   @Get('all')

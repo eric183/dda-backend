@@ -19,25 +19,26 @@ export class DemandsService {
   async getCore() {
     return this.prisma.core.findMany();
   }
-
-  async updateToken(id: string, token) {
-    return this.prisma.core.update({
-      where: {
-        id,
-      },
+  async createCore() {
+    return this.prisma.core.create({
       data: {
-        token,
+        token: 'test',
+        prompt: 'test',
       },
     });
   }
 
-  async updatePrompt(id: string, prompt) {
-    const core = this.prisma.core.update({
+  async updateCore(id: string, core) {
+    return this.prisma.core.upsert({
       where: {
         id,
       },
-      data: {
-        prompt,
+      update: {
+        ...core,
+      },
+      create: {
+        token: core.token,
+        prompt: core.prompt,
       },
     });
   }
