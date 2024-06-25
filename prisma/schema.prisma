@@ -7,108 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Widget {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-}
+model EncryptedData {
+  id         String   @id @default(cuid())
+  ciphertext String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-model User {
-  id             String    @id @unique @default(cuid())
-  username       String?
-  email          String    @unique
-  password       String
-  gender         String?
-  avatar         String?
-  matchedDemands String[]
-  verified       Boolean   @default(false)
-  verifiedCode   String?
-  openId         String?
-  authExpiresAt  String?
-  authToken      String?
-  credentialType  Credential  @default(EMAIL)
-  contacts       Contact[]
-  demands        Demand[]
-}
+  // 关联
+  // shortLinkId String?  @unique
+  slug       String?  @unique
+  shortLink  ShortLink? @relation(fields: [slug], references: [slug])
 
-model Contact {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-}
-
-model Demand {
-  id           String       @id @default(cuid())
-  created_time DateTime     @default(now())
-  English      String
-  Chinese      String
-  demandRole   DemandRole   @default(FREE)
-  userId       String?
-  categoryType CategoryType
-  end_time     DateTime?
-  status       DemandStatus
-  title        String
-  images       String[]
-  placeId      String?
-  place        Place?       @relation(fields: [placeId], references: [id])
-  User         User?        @relation(fields: [userId], references: [id])
-}
-
-model InstaceAI {
-  id      String   @id @default(cuid())
-  created DateTime @default(now())
-  title   String
-  group   String
-  name    String
-  type    String
-  key     String
-}
-
-model Place {
-  id        String   @unique @default(cuid())
-  latitude  Float
-  longitude Float
-  name      String   @unique
-  Demand    Demand[]
-}
-
-model Core {
-  id        String   @unique @default(cuid())
-
-  token       String
-  prompt      String
-  matchingPrompt String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-enum DemandRole {
-  NEED
-  SERVER
-  FREE
-}
-
-enum CategoryType {
-  Social
-  Work
-  Home
-  Health
-  Shopping
-  Travel
-  Learning
-  Entertainment
-  Transportation
-  Finance
-}
-
-enum DemandStatus {
-  CLOSED
-  OPEN
-  PENDING
-  COMPLETED
+  // 可能需要的额外字段
+  metadata   Json?
 }
 
 
-enum Credential {
-  EMAIL
-  PHONE
-  GOOGLE
+model ShortLink {
+  id         String        @id @default(nanoid(10))
+  slug       String?       @unique @default(nanoid(10))
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  // 关联
+
+  encryptedDataId String? @unique
+  encryptedData EncryptedData? 
 }
