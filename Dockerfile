@@ -26,7 +26,7 @@ ENV NODE_ENV=production
 
 # expose the port
 EXPOSE ${PORT}
-EXPOSE ${SOCKET_PORT}
+# EXPOSE ${SOCKET_PORT}
 
 
 # CMD ["pm2-runtime", ""]
