@@ -17,6 +17,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     // Add your custom authentication logic here
 
     // for example, call super.logIn(request) to establish a session.
+
     const result = super.canActivate(context) as boolean;
     const request = context.switchToHttp().getRequest();
     const token = request.headers.authorization.replace('Bearer', '').trim();
@@ -24,12 +25,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     //   return false;
     // }
 
-    // console.log(request.url, await result, '....');
-
     if (token !== 'null') {
-      const user = await this.authService?.verifyToken(
-        request.headers.authorization,
-      );
+      const user = await this.authService?.verifyToken(token);
 
       if (result && user && user.verified) {
         return result;
@@ -52,20 +49,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err: any, user: any) {
-    console.log(user, 'user....');
-
-    // if (err || !user) {
-    //   throw err || new UnauthorizedException();
-    // }
+    if (err || !user) {
+      throw err || new UnauthorizedException();
+    }
     return user;
   }
-
-  // async handleRequest(err, user, info): Promise<any> {
-  //   // You can throw an exception based on either "info" or "err" arguments
-  //   if (err || !user) {
-  //     throw err || new UnauthorizedException();
-  //   }
-
-  //   return await this.usersService.getUserbyId(user.id);
-  // }
 }

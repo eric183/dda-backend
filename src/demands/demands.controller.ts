@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Request,
   Patch,
+  Put,
 } from '@nestjs/common';
 import { DemandStatus } from '@prisma/client';
 
@@ -25,6 +26,25 @@ export class DemandsController {
     // private readonly usersService: UsersService,
     private readonly demandsService: DemandsService,
   ) {}
+
+  @Get('cores')
+  getCore() {
+    return this.demandsService.getCore();
+  }
+
+  @Post('core')
+  createCore(@Body() coreInfo) {
+    return this.demandsService.createCore(coreInfo);
+  }
+
+  @Patch('/core/:id')
+  updateCoreToken(@Param('id') id: string, @Body() coreInfo) {
+    return this.demandsService.updateCore(id, {
+      token: coreInfo.token,
+      prompt: coreInfo.prompt,
+      matchingPrompt: coreInfo.matchingPrompt,
+    });
+  }
 
   @Get('all')
   getAllDemands() {

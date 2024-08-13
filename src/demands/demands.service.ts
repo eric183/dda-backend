@@ -8,7 +8,40 @@ export class DemandsService {
   constructor(private prisma: PrismaService) {}
 
   async getAllDemands() {
-    return this.prisma.demand.findMany();
+    return this.prisma.demand.findMany({
+      include: {
+        User: true,
+        place: true,
+      },
+    });
+  }
+
+  async getCore() {
+    const cores = await this.prisma.core.findMany();
+
+    return cores[0] ? cores[0] : {};
+  }
+
+  async createCore(coreInfo) {
+    return this.prisma.core.create({
+      data: coreInfo,
+    });
+  }
+
+  async updateCore(id: string, core) {
+    return this.prisma.core.upsert({
+      where: {
+        id,
+      },
+      update: {
+        ...core,
+      },
+      create: {
+        token: core.token,
+        prompt: core.prompt,
+        matchingPrompt: core.matchingPrompt,
+      },
+    });
   }
 
   async createDemandByUser(

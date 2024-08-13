@@ -2,6 +2,8 @@ FROM node:latest
 
 WORKDIR /app
 
+# copy package.json and yarn.lock to the container
+# COPY package.json yarn.lock ./
 COPY .env .env
 COPY package.json .
 COPY yarn.lock .
@@ -21,7 +23,11 @@ ENV NODE_ENV=production
 
 # expose the port
 EXPOSE ${PORT}
-EXPOSE ${SOCKEAT_PORT}
+EXPOSE ${SOCKET_PORT}
+
+
+# CMD ["pm2-runtime", ""]
+# start the app in production mode
 
 # start the app in development mode with hot reloading
 CMD ["yarn", "dev"]
