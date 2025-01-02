@@ -1,1 +1,4 @@
-export class CreateBusinessUserDto {}
+export class CreateBusinessUserDto {
+  name: string;
+  image: string;
+}

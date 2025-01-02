@@ -14,6 +14,7 @@ import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { Roles, RolesGuard } from 'src/auth/guards/roles.guard';
 import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateQuizClassDto } from './dto/create-quizClass.dto';
 
 @Controller('quiz')
 export class QuizController {
@@ -34,12 +35,19 @@ export class QuizController {
   // @Roles('admin')
   @Get('/class')
   findAllQuizClass() {
+    console.log('findAllQuizClass');
     return this.quizService.findAllQuizClass();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.quizService.findOne(id);
+  }
+
+  @Post('/class')
+  // @UseGuards(AuthGuard('jwt'))
+  createQuizClass(@Body() createQuizClassDto: CreateQuizClassDto) {
+    return this.quizService.createQuizClass(createQuizClassDto);
   }
 
   @Patch(':id')

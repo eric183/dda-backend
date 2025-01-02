@@ -10,8 +10,20 @@ export class BusinessUserService {
   constructor(private readonly prismaService: PrismaService) {}
 
   // constructor(prismaClient: PrismaService) {}
-  create(createBusinessUserDto: CreateBusinessUserDto) {
-    return 'This action adds a new businessUser';
+  async create(createBusinessUserDto: CreateBusinessUserDto) {
+    const d = await this.prismaService.businessUser.create({
+      data: {
+        name: createBusinessUserDto.name,
+        image: createBusinessUserDto.image,
+        isActive: true,
+      },
+    });
+    console.log(d, '....');
+    try {
+      return ApiResponseUtil.success(d, 'user created successfully');
+    } catch (e) {
+      return ApiResponseUtil.error('Failed to create user');
+    }
   }
 
   // async findAll(params?: {

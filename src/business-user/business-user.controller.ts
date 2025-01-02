@@ -17,7 +17,7 @@ export class BusinessUserController {
   constructor(private readonly businessUserService: BusinessUserService) {}
 
   @Post()
-  create(@Body() createBusinessUserDto: CreateBusinessUserDto) {
+  async create(@Body() createBusinessUserDto: CreateBusinessUserDto) {
     return this.businessUserService.create(createBusinessUserDto);
   }
 

@@ -3,6 +3,7 @@ import { CreateQuizDto } from './dto/create-quiz.dto';
 import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ApiResponseUtil } from 'base/utils/api-response.util';
+import { CreateQuizClassDto } from './dto/create-quizClass.dto';
 
 @Injectable()
 export class QuizService {
@@ -10,6 +11,19 @@ export class QuizService {
 
   create(createQuizDto: CreateQuizDto) {
     return 'This action adds a new quiz';
+  }
+
+  async createQuizClass(createQuizClassDto: CreateQuizClassDto) {
+    const d = await this.prismaService.quizClass.create({
+      data: createQuizClassDto,
+    });
+
+    console.log(d, 'd');
+    try {
+      return ApiResponseUtil.success(d, 'QuizClass created successfully');
+    } catch (error) {
+      return ApiResponseUtil.error('Failed to create QuizClass');
+    }
   }
 
   async findAll() {
