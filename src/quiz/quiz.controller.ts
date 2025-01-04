@@ -14,7 +14,10 @@ import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { Roles, RolesGuard } from 'src/auth/guards/roles.guard';
 import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
 import { AuthGuard } from '@nestjs/passport';
-import { CreateQuizClassDto } from './dto/create-quizClass.dto';
+import { CreateQuizCategoryDto } from './dto/create-quizCategory.dto';
+import { UpdateQuestionDto } from './dto/update-question.dto';
+import { CreateQuestionDto } from './dto/create-question.dto';
+import { UpdateQuizCategoryDto } from './dto/update-quizCategory.dto';
 
 @Controller('quiz')
 export class QuizController {
@@ -26,17 +29,29 @@ export class QuizController {
     return this.quizService.create(createQuizDto);
   }
 
+  // @UseGuards(AuthGuard('jwt'))
+  @Post(':id/questions')
+  createQuestion(@Param('id') id: string, @Body() createQuestionDto: CreateQuestionDto) {
+    return this.quizService.createQuestion(id, createQuestionDto);
+  }
+
   @Get()
   @Roles('admin')
   findAll() {
     return this.quizService.findAll();
   }
 
+  // GET_ALL_QUESTIONS_BY_QUIZ_ID
+  @Get(':id/questions')
+  getAllQuestionsByQuizId(@Param('id') id: string) {
+    console.log('getAllQuestionsByQuizId', id);
+    return this.quizService.getAllQuestionsByQuizId(id);
+  }
   // @Roles('admin')
-  @Get('/class')
-  findAllQuizClass() {
-    console.log('findAllQuizClass');
-    return this.quizService.findAllQuizClass();
+  @Get('/category')
+  findAllQuizCategory() {
+    console.log('findAllQuizCategory');
+    return this.quizService.findAllQuizCategory();
   }
 
   @Get(':id')
@@ -44,17 +59,22 @@ export class QuizController {
     return this.quizService.findOne(id);
   }
 
-  @Post('/class')
+  @Post('/category')
   // @UseGuards(AuthGuard('jwt'))
-  createQuizClass(@Body() createQuizClassDto: CreateQuizClassDto) {
-    return this.quizService.createQuizClass(createQuizClassDto);
+  createQuizCategory(@Body() createQuizCategoryDto: CreateQuizCategoryDto) {
+    return this.quizService.createQuizCategory(createQuizCategoryDto);
   }
 
-  @Patch(':id')
+  @Patch('/category/:id')
+  updateQuizCategory(@Param('id') id: string, @Body() updateQuizCategoryDto: UpdateQuizCategoryDto) {
+    return this.quizService.updateQuizCategory(id, updateQuizCategoryDto);
+  }
+
+  @Patch('/questions/:questionId')
   @UseGuards(AuthGuard('jwt'))
-  update(@Param('id') id: string, @Body() updateQuizDto: UpdateQuizDto) {
-    // console.log(id, '......', updateQuizDto);
-    return this.quizService.update(id, updateQuizDto);
+  updateQuestion(@Param('questionId') questionId: string, @Body() updateQuestionDto: UpdateQuestionDto) {
+    // console.log(id, '......', updateQuestionDto);
+    return this.quizService.updateQuestion(questionId, updateQuestionDto);
   }
 
   @Delete(':id')

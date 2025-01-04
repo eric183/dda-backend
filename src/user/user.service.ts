@@ -134,6 +134,7 @@ export class UserService {
 
   async createUser(data: Prisma.UserCreateInput) {
     const hashedPassword = await BtUtil.hashPassword(data.password);
+    
     const response = await this.prismaService.user.create({
       data: {
         ...data,

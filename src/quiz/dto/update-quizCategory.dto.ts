@@ -1,0 +1,17 @@
+import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
+
+export class UpdateQuizCategoryDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  image?: string;
+
+
+  @IsArray()
+  @IsOptional()
+  quizzes?: { id?: string; name: string; categoryId: string }[];
+
+}

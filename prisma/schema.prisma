@@ -64,53 +64,60 @@ model InviteCode {
 
 model QuizCategory {
 
-    id        Int       @id @default(autoincrement()) 
-    name      String    // 分类名称
-    quizzes   Quiz[]
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  name      String    // 分类名称 
+  quizzes   Quiz[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  image     String?
+  @@unique([name])
 }
 
 model Quiz {
-  id         Int       @id @default(autoincrement())
+  id         String   @id @default(cuid())
   name       String    // 题型名称
-  categoryId    Int       
+  categoryId    String       
   category      QuizCategory @relation(fields: [categoryId], references: [id])
-  image         String?
+  // quizIndex     Int?
   questions  Question[] // 关联的题目
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }
 
 model Question {
-  id         Int       @id @default(autoincrement())
+  questionIndex Int
+  id         String   @id @default(cuid())
   content    String    // 题目内容
-  typeId     Int
-  quizId     Int
+  // typeId     Int
+  quizId     String
+  image         String?
   quiz       Quiz      @relation(fields: [quizId], references: [id])
   options    Option[]  // 关联的选项
-  answer     String    // 正确答案
+  optionAnswers OptionAnswer[]
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }
 
 model Option {
   id        String   @id @default(cuid())
+  optionIndex Int
   content   String
-  isAnswer  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  questionId Int
+  questionId String
   question   Question  @relation(fields: [questionId], references: [id])
 }
 
 model OptionAnswer {
   id        String   @id @default(cuid())
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  quizId    String
+  questionId String
+  question   Question  @relation(fields: [questionId], references: [id])
   metadata  Json?
   content   String
+  optionAnswerIndex Int
 }
 
 enum QuizType {

@@ -1,0 +1,32 @@
+import { IsArray, IsNumber } from "class-validator";
+
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+
+export class CreateQuestionDto {
+  @IsString()
+  @IsNotEmpty()
+  content: string;
+
+  @IsArray()
+  @IsNotEmpty()
+  options: {
+    id: string;
+    content: string;
+    optionIndex: number;
+  }[];
+
+  @IsArray()
+  @IsNotEmpty()
+  optionAnswers: {
+    id: string;
+    content: string;
+    optionAnswerIndex: number;
+  }[];
+
+  @IsString()
+  @IsOptional()
+  image: string;
+
+  @IsNumber()
+  questionIndex: number;
+}

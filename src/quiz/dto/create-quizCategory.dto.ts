@@ -1,7 +1,6 @@
-
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
-export class CreateQuizClassDto {
+export class CreateQuizCategoryDto {
   @IsString()
   @IsNotEmpty()
   name: string;

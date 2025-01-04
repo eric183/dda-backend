@@ -13,35 +13,44 @@ async function main() {
     );
     const data = JSON.parse(rawData);
 
-    // 遍历每个问题
-    for (const item of data.data) {
-      // 创建 Quiz
-      const quiz = await prisma.quiz.create({
-        data: {
-          parentId: item.parentId,
-          quizIndex: item.quizIndex,
-          quiz: item.quiz,
-          type: item.type === 'radio' ? 'RADIO' : 'MULTIPLE',
-          category: item.category,
-          // 同时创建选项
-          options: {
-            create: item.options.map((option) => ({
-              content: option,
-            })),
-          },
-          // options: {
-          //   create: item.options,
-          // },
-          optionAnswers: {
-            create: item.optionAnswers.map((optionAnswer) => ({
-              content: optionAnswer,
-            })),
+    const { name, category, questions } = data;
+
+    const quiz = await prisma.quiz.create({
+      data: {
+        name,
+        category: {
+          connectOrCreate: {
+            where: {
+              name: category,
+            },
+            create: {
+              name: category,
+            },
           },
         },
-      });
+        questions: {
+          create: questions.map((item) => ({
+            content: item.question,
+            questionIndex: item.questionIndex,
+            image: item.image,
+            options: {
+              create: item.options.map((option) => ({
+                content: option.content,
+                optionIndex: option.optionIndex,
+              })),
+            },
+            optionAnswers: {
+              create: item.optionAnswers.map((optionAnswer) => ({
+                content: optionAnswer.content,
+                optionAnswerIndex: optionAnswer.optionAnswerIndex,
+              })),
+            },
+          })),
+        },
+      },
+    });
 
-      console.log(`Created quiz: ${quiz.id}`);
-    }
+    console.log(`Created quiz: ${quiz.id}`);
 
     console.log('Seed completed successfully');
   } catch (error) {
