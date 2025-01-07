@@ -91,6 +91,7 @@ model Question {
   // typeId     Int
   quizId     String
   image         String?
+  typeClass   String
   quiz       Quiz      @relation(fields: [quizId], references: [id])
   options    Option[]  // 关联的选项
   optionAnswers OptionAnswer[]

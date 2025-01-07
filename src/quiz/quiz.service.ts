@@ -25,6 +25,7 @@ export class QuizService {
             content: createQuestionDto.content,
             image: createQuestionDto.image ? createQuestionDto.image : null,
             questionIndex: createQuestionDto.questionIndex,
+            typeClass: createQuestionDto.typeClass,
             optionAnswers: {
               create: createQuestionDto.optionAnswers.map((option) => ({
                 content: option.content,

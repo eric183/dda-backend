@@ -33,6 +33,7 @@ async function main() {
             content: item.question,
             questionIndex: item.questionIndex,
             image: item.image,
+            typeClass: item.typeClass,
             options: {
               create: item.options.map((option) => ({
                 content: option.content,

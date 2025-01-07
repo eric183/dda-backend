@@ -52,7 +52,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/1.jpg",
-      "category": "假设篇（引导内心的能量）"
+      "typeClass": "假设篇（引导内心的能量）"
     },
     {
       "questionIndex": 2,
@@ -104,7 +104,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/2.jpg",
-      "category": "假设篇（引导内心的能量）"
+      "typeClass": "假设篇（引导内心的能量）"
     },
     {
       "questionIndex": 3,
@@ -156,7 +156,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/3.jpg",
-      "category": "假设篇（引导内心的能量）"
+      "typeClass": "假设篇（引导内心的能量）"
     },
     {
       "questionIndex": 4,
@@ -208,7 +208,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/4.jpg",
-      "category": "假设篇（引导内心的能量）"
+      "typeClass": "假设篇（引导内心的能量）"
     },
     {
       "questionIndex": 5,
@@ -260,7 +260,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/5.jpg",
-      "category": "兴趣篇（从喜欢的事情中汲取能量）"
+      "typeClass": "兴趣篇（从喜欢的事情中汲取能量）"
     },
     {
       "questionIndex": 6,
@@ -312,7 +312,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/6.jpg",
-      "category": "兴趣篇（从喜欢的事情中汲取能量）"
+      "typeClass": "兴趣篇（从喜欢的事情中汲取能量）"
     },
     {
       "questionIndex": 7,
@@ -364,7 +364,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/7.jpg",
-      "category": "兴趣篇（从喜欢的事情中汲取能量）"
+      "typeClass": "兴趣篇（从喜欢的事情中汲取能量）"
     },
     {
       "questionIndex": 8,
@@ -416,7 +416,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/8.jpg",
-      "category": "兴趣篇（从喜欢的事情中汲取能量）"
+      "typeClass": "兴趣篇（从喜欢的事情中汲取能量）"
     },
     {
       "questionIndex": 9,
@@ -468,7 +468,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/9.jpg",
-      "category": "兴趣篇（从喜欢的事情中汲取能量）"
+      "typeClass": "兴趣篇（从喜欢的事情中汲取能量）"
     },
     {
       "questionIndex": 10,
@@ -519,7 +519,8 @@
           "content": "去埃及探究金字塔之谜"
         }
       ],
-      "category": "兴趣篇（从喜欢的事情中汲取能量）"
+      "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/10.jpg",
+      "typeClass": "兴趣篇（从喜欢的事情中汲取能量）"
     },
     {
       "questionIndex": 11,
@@ -571,7 +572,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/11.jpg",
-      "category": "生活篇（你的生活方式圈定了目前的能量场）"
+      "typeClass": "生活篇（你的生活方式圈定了目前的能量场）"
     },
     {
       "questionIndex": 12,
@@ -623,7 +624,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/12.jpg",
-      "category": "生活篇（你的生活方式圈定了目前的能量场）"
+      "typeClass": "生活篇（你的生活方式圈定了目前的能量场）"
     },
     {
       "questionIndex": 13,
@@ -675,7 +676,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/13.jpg",
-      "category": "生活篇（你的生活方式圈定了目前的能量场）"
+      "typeClass": "生活篇（你的生活方式圈定了目前的能量场）"
     },
     {
       "questionIndex": 14,
@@ -727,7 +728,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/14.jpg",
-      "category": "生活篇（你的生活方式圈定了目前的能量场）"
+      "typeClass": "生活篇（你的生活方式圈定了目前的能量场）"
     },
     {
       "questionIndex": 15,
@@ -779,7 +780,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/15.jpg",
-      "category": "超能篇（理想中的能量型）"
+      "typeClass": "超能篇（理想中的能量型）"
     },
     {
       "questionIndex": 16,
@@ -831,7 +832,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/15.jpg",
-      "category": "超能篇（理想中的能量型）"
+      "typeClass": "超能篇（理想中的能量型）"
     },
     {
       "questionIndex": 17,
@@ -883,7 +884,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/17.jpg",
-      "category": "超能篇（理想中的能量型）"
+      "typeClass": "超能篇（理想中的能量型）"
     },
     {
       "questionIndex": 18,
@@ -935,7 +936,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/16.jpg",
-      "category": "超能篇（理想中的能量型）"
+      "typeClass": "超能篇（理想中的能量型）"
     },
     {
       "questionIndex": 19,
@@ -987,7 +988,7 @@
         }
       ],
       "image": "http://mightme.oss-cn-guangzhou.aliyuncs.com/assets/image/19.jpg",
-      "category": "超能篇（理想中的能量型）"
+      "typeClass": "超能篇（理想中的能量型）"
     }
   ]
 }

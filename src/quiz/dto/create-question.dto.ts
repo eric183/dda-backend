@@ -1,4 +1,4 @@
-import { IsArray, IsNumber } from "class-validator";
+import { IsArray, IsNumber } from 'class-validator';
 
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
@@ -29,4 +29,8 @@ export class CreateQuestionDto {
 
   @IsNumber()
   questionIndex: number;
+
+  @IsString()
+  @IsOptional()
+  typeClass: string;
 }
