@@ -8,28 +8,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id          String       @id @default(cuid())
-  email       String       @unique
-  password    String
-  name        String?
-  avatar      String?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  lastLoginAt DateTime?
-  metadata    Json?
-  role        RoleType     @default(USER)
-  inviteCode  InviteCode[]
-}
+model SDKToken {
+  id         String       @id @default(cuid())
+  token      String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  metadata   Json?
+  businessId String
+  isActive   Boolean      @default(true)
+  expiredAt  DateTime
+  business   BusinessUser @relation(fields: [businessId], references: [id])
 
-model BusinessUser {
-  id        String   @id @default(cuid())
-  name      String
-  image     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@unique([businessId])
+  @@index([businessId])
+  @@map("sdk_token")
 }
 
 model EncryptedData {
@@ -51,6 +43,42 @@ model ShortLink {
   encryptedData   EncryptedData?
 }
 
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  password    String
+  name        String?
+  avatar      String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  lastLoginAt DateTime?
+  metadata    Json?
+  role        RoleType     @default(USER)
+  inviteCode  InviteCode[]
+}
+
+
+model BusinessUser {
+  id        String   @id @default(cuid())
+  name      String
+  image     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  selectedQuizId String?
+  selectedQuiz   Quiz?     @relation(fields: [selectedQuizId], references: [id])
+  SDKToken       SDKToken? @relation
+  SDKTokenId     String?
+
+  quizQRImage String?
+
+  @@unique([SDKTokenId])
+}
+
+
 model InviteCode {
   id             String   @id @default(cuid())
   code           String   @unique
@@ -63,62 +91,112 @@ model InviteCode {
 }
 
 model QuizCategory {
+  id          String        @id @default(cuid())
+  name        String // 分类名称 
+  quizzes     Quiz[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  image       String?
+  algorithmId String
+  algorithm   QuizAlgorithm @relation(fields: [algorithmId], references: [id])
 
-  id        String   @id @default(cuid())
-  name      String    // 分类名称 
-  quizzes   Quiz[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  image     String?
+  quizResultId String?
+  quizResult   QuizResult? @relation(fields: [quizResultId], references: [id])
+
   @@unique([name])
 }
 
 model Quiz {
-  id         String   @id @default(cuid())
-  name       String    // 题型名称
-  categoryId    String       
-  category      QuizCategory @relation(fields: [categoryId], references: [id])
-  // quizIndex     Int?
-  questions  Question[] // 关联的题目
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id         String       @id @default(cuid())
+  name       String // 题型名称
+  categoryId String
+  category   QuizCategory @relation(fields: [categoryId], references: [id])
+
+  businessUsers BusinessUser[]
+  questions     Question[] // 关联的题目
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model QuizAlgorithm {
+  id           String         @id @default(cuid())
+  name         String
+  description  String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  QuizCategory QuizCategory[]
+}
+
+model QuizResult {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  name        String
+  description String
+  headerImage String
+  
+  personal    Personal[]
+  QuizCategory   QuizCategory[]
+}
+
+model Personal {
+  id               String     @id @default(cuid())
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  personalCategory String
+  personalAnalyze  String
+  personalColor    String
+  personalColorCode String?
+  personalPower    String
+
+  quizResultId     String
+  quizResult       QuizResult @relation(fields: [quizResultId], references: [id])
+
+  personalAvatar String
+  description    String
 }
 
 model Question {
   questionIndex Int
-  id         String   @id @default(cuid())
-  content    String    // 题目内容
-  // typeId     Int
-  quizId     String
+  id            String         @id @default(cuid())
+  content       String // 题目内容
+  powerClass    PowerClass?
+  quizId        String
   image         String?
-  typeClass   String
-  quiz       Quiz      @relation(fields: [quizId], references: [id])
-  options    Option[]  // 关联的选项
+  typeClass     String?
+  type          QuizType
+  quiz          Quiz           @relation(fields: [quizId], references: [id])
+  options       Option[] // 关联的选项
   optionAnswers OptionAnswer[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Option {
-  id        String   @id @default(cuid())
+  id          String   @id @default(cuid())
   optionIndex Int
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  questionId String
-  question   Question  @relation(fields: [questionId], references: [id])
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id])
 }
 
 model OptionAnswer {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  questionId String
-  question   Question  @relation(fields: [questionId], references: [id])
-  metadata  Json?
-  content   String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  questionId        String
+  question          Question @relation(fields: [questionId], references: [id])
+  metadata          Json?
+  content           String
   optionAnswerIndex Int
+}
+
+enum PowerClass {
+  PRIMARY
+  ASSIST
 }
 
 enum QuizType {

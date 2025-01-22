@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCdkeyDto } from './dto/create-cdkey.dto';
-import { UpdateCdkeyDto } from './dto/update-cdkey.dto';
 import { EncryptionService } from 'src/encryption/encryption.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 

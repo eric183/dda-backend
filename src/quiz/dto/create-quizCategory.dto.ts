@@ -16,4 +16,8 @@ export class CreateQuizCategoryDto {
   @IsString()
   @IsOptional()
   category?: string;
+
+  @IsString()
+  @IsOptional()
+  algorithmId?: string;
 }

@@ -14,4 +14,11 @@ export class UpdateQuizCategoryDto {
   @IsOptional()
   quizzes?: { id?: string; name: string; categoryId: string }[];
 
+  @IsString()
+  @IsOptional()
+  algorithmId?: string;
+
+  @IsString()
+  @IsOptional()
+  quizResultId?: string;
 }

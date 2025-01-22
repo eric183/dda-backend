@@ -25,6 +25,11 @@ async function main() {
             },
             create: {
               name: category,
+              algorithm: {
+                create: {
+                  name: '二十型人格测试',
+                },
+              },
             },
           },
         },
@@ -34,6 +39,7 @@ async function main() {
             questionIndex: item.questionIndex,
             image: item.image,
             typeClass: item.typeClass,
+            type: item.type === 'multiple' ? "MULTIPLE" : "RADIO",
             options: {
               create: item.options.map((option) => ({
                 content: option.content,

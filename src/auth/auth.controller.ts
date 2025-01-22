@@ -7,6 +7,7 @@ import {
   Get,
   Request,
   UnauthorizedException,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -20,7 +21,7 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: '用户登录' })
   async login(@Body() loginDto: { email: string; password: string }) {
-    console.log(loginDto, 'loginDto');
+    // console.log(loginDto, 'loginDto');
 
     const user = await this.authService.validateUser(
       loginDto.email,
@@ -41,6 +42,8 @@ export class AuthController {
   ) {
     // return this.authService.register(registerDto);
   }
+
+  // @ApiOperation({ summary: '获取微信access_token' })
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')

@@ -9,6 +9,7 @@ import {
   Delete,
   UseGuards,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,6 +18,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Roles } from '../auth/decorators';
 import { Prisma } from '@prisma/client';
+import { QueryDto } from 'src/dto/query.dto';
 
 // @UseGuards(AuthGuard('jwt'), RolesGuard)
 @ApiTags('users')
@@ -27,9 +29,24 @@ export class UserController {
   // @Roles('admin')
   @Get()
   @ApiOperation({ summary: '获取所有用户' })
-  async getAllUsers() {
-    console.log('getAllUsers');
-    return this.userService.users({});
+  async getAllUsers(@Query() query: QueryDto) {
+    const {
+      page = 1,
+      pageSize = 10,
+      search = '',
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      filters = {},
+    } = query;
+
+    return this.userService.findAll({
+      page,
+      pageSize,
+      search,
+      sortBy,
+      sortOrder,
+      filters,
+    });
   }
 
   @Get(':id')

@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { CreateQuizDto } from './dto/create-quiz.dto';
-import { UpdateQuizDto } from './dto/update-quiz.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Question, QuizAlgorithm, QuizCategory } from '@prisma/client';
+import { ApiResponsePagination } from 'base/interfaces/api-response.interface';
 import { ApiResponseUtil } from 'base/utils/api-response.util';
-import { CreateQuizCategoryDto } from './dto/create-quizCategory.dto';
-import { UpdateQuestionDto } from './dto/update-question.dto';
+import { QueryDto } from 'src/dto/query.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
+import { CreateQuizDto } from './dto/create-quiz.dto';
+import { CreateQuizAlgorithmDto } from './dto/create-quizAlgorithm.dto';
+import { CreateQuizCategoryDto } from './dto/create-quizCategory.dto';
+import { CreateQuizResultDto } from './dto/create-quizResult.dto';
+import { UpdateQuestionDto } from './dto/update-question.dto';
 import { UpdateQuizCategoryDto } from './dto/update-quizCategory.dto';
 
 @Injectable()
@@ -16,64 +20,88 @@ export class QuizService {
     return 'This action adds a new quiz';
   }
 
-  async createQuestion(id: string, createQuestionDto: CreateQuestionDto) {
-    await this.prismaService.quiz.update({
-      where: { id },
-      data: {
-        questions: {
-          create: {
-            content: createQuestionDto.content,
-            image: createQuestionDto.image ? createQuestionDto.image : null,
-            questionIndex: createQuestionDto.questionIndex,
-            typeClass: createQuestionDto.typeClass,
-            optionAnswers: {
-              create: createQuestionDto.optionAnswers.map((option) => ({
-                content: option.content,
-                optionAnswerIndex: option.optionAnswerIndex,
-              })),
+  async createQuestion(
+    id: string,
+    createQuestionDto: CreateQuestionDto | CreateQuestionDto[],
+  ) {
+    if (!Array.isArray(createQuestionDto)) {
+      await this.prismaService.quiz.update({
+        where: { id },
+        data: {
+          questions: {
+            create: {
+              content: createQuestionDto.content,
+              image: createQuestionDto.image ? createQuestionDto.image : null,
+              questionIndex: createQuestionDto.questionIndex,
+              typeClass: createQuestionDto.typeClass,
+              type:
+                createQuestionDto.type === 'MULTIPLE' ? 'MULTIPLE' : 'RADIO',
+              optionAnswers: {
+                create: createQuestionDto.optionAnswers.map((option) => ({
+                  content: option.content,
+                  optionAnswerIndex: option.optionAnswerIndex,
+                })),
+              },
+              options: {
+                create: createQuestionDto.options.map((option) => ({
+                  content: option.content,
+                  optionIndex: option.optionIndex,
+                })),
+              },
+              // questionIndex: createQuestionDto.questionIndex,
             },
-            options: {
-              create: createQuestionDto.options.map((option) => ({
-                content: option.content,
-                optionIndex: option.optionIndex,
-              })),
-            },
-            // questionIndex: createQuestionDto.questionIndex,
           },
         },
-      },
-    });
+      });
 
-    try {
-      return ApiResponseUtil.success(true, 'Question created successfully');
-    } catch (error) {
-      return ApiResponseUtil.error('Failed to create question');
+      try {
+        return ApiResponseUtil.success(true, 'Question created successfully');
+      } catch (error) {
+        return ApiResponseUtil.error('Failed to create question');
+      }
+    } else {
+      await this.prismaService.quiz.update({
+        where: { id },
+        data: {
+          questions: {
+            create: createQuestionDto.map((question) => ({
+              content: question.content,
+              image: question.image,
+              questionIndex: question.questionIndex,
+              typeClass: question.typeClass,
+              type: question.type === 'MULTIPLE' ? 'MULTIPLE' : 'RADIO',
+              options: {
+                create: question.options.map((option) => ({
+                  content: option.content,
+                  optionIndex: option.optionIndex,
+                })),
+              },
+              optionAnswers: {
+                create: question.optionAnswers.map((option) => ({
+                  content: option.content,
+                  optionAnswerIndex: option.optionAnswerIndex,
+                })),
+              },
+            })),
+          },
+        },
+      });
+
+      return ApiResponseUtil.success(true, 'Questions created successfully');
     }
-
-    // const question = await this.prismaService.question.create({
-    //   data: {
-    //     quizId: quiz.id,
-    //     content: createQuestionDto.content,
-    //     image: createQuestionDto.image,
-    //     options: {
-    //       create: createQuestionDto.options.map((option) => ({
-    //         content: option.content,
-    //         optionIndex: option.optionIndex,
-    //       })),
-    //     },
-    //     optionAnswers: {
-    //       create: createQuestionDto.optionAnswers.map((option) => ({
-    //         content: option.content,
-    //         optionAnswerIndex: option.optionAnswerIndex,
-    //       })),
-    //     },
-    //   },
-    // });
   }
 
   async createQuizCategory(createQuizCategoryDto: CreateQuizCategoryDto) {
     const d = await this.prismaService.quizCategory.create({
-      data: createQuizCategoryDto,
+      data: {
+        name: createQuizCategoryDto.name,
+        // image: createQuizCategoryDto.image || '',
+        algorithm: {
+          connect: {
+            id: createQuizCategoryDto.algorithmId,
+          },
+        },
+      },
     });
 
     try {
@@ -83,37 +111,64 @@ export class QuizService {
     }
   }
 
-  async updateQuizCategory(id: string, updateQuizCategoryDto: UpdateQuizCategoryDto) {
+  async updateQuizCategory(
+    id: string,
+    updateQuizCategoryDto: UpdateQuizCategoryDto,
+  ) {
     console.log('updateQuizCategoryDto....', updateQuizCategoryDto);
-    const quizDataWithIds = updateQuizCategoryDto.quizzes.filter((quiz) => quiz.id);
-    
-    const quizDataWithoutIds = updateQuizCategoryDto.quizzes.filter((quiz) => !quiz.id).map((quiz) => {
-      const { id, ...rest } = quiz;
-      return rest;
-    });
+    const quizDataWithIds = updateQuizCategoryDto.quizzes.filter(
+      (quiz) => quiz.id,
+    );
 
-
+    const quizDataWithoutIds = updateQuizCategoryDto.quizzes
+      .filter((quiz) => !quiz.id)
+      .map((quiz) => {
+        const { id, ...rest } = quiz;
+        return rest;
+      });
 
     await this.prismaService.$transaction(async (tx) => {
+      await tx.quizCategory.update({
+        where: { id },
+        data: {
+          // 使用扩展运算符创建一个新对象
+          ...updateQuizCategoryDto.name && { name: updateQuizCategoryDto.name },
+          ...updateQuizCategoryDto.algorithmId && { 
+            algorithm: {
+              connect: { id: updateQuizCategoryDto.algorithmId }
+            }
+          },
+          ...updateQuizCategoryDto.quizResultId && {
+            quizResult: {
+              connect: { id: updateQuizCategoryDto.quizResultId }
+            }
+          }
+        },
+      });
       // 更新所有含有 ID 的 quiz 信息，例如 name 等 { name: quiz.name }
       await Promise.all(
-        quizDataWithIds.map(quiz => 
+        quizDataWithIds.map((quiz) =>
           tx.quiz.update({
             where: { id: quiz.id },
-            data: { name: quiz.name }
-          })
-        )
-      )
-      
+            data: { name: quiz.name },
+          }),
+        ),
+      );
+
       // 创建所有不含 ID 的 quiz, 并关联到 category
       await tx.quiz.createMany({
-        
         data: quizDataWithoutIds.map((quiz) => ({ ...quiz, categoryId: id })),
       });
     });
 
     return ApiResponseUtil.success(true, 'QuizCategory updated successfully');
-   
+  }
+
+  async deleteQuizCategory(id: string) {
+    await this.prismaService.quizCategory.delete({
+      where: { id },
+    });
+    return ApiResponseUtil.success(true, 'QuizCategory deleted successfully');
   }
 
   async findAll() {
@@ -151,6 +206,51 @@ export class QuizService {
     }
   }
 
+  async findAllQuizAlgorithm(query: QueryDto  ) {
+    const {
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+      search,
+      filters,
+    } = query;
+    const quiz = await this.prismaService.quizAlgorithm.findMany({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: { [sortBy]: sortOrder },
+      where: {
+        name: {
+          contains: search,
+        },
+      },
+    });
+    return ApiResponseUtil.success<ApiResponsePagination<QuizAlgorithm>>(
+      {
+        data: quiz,
+        pagination: {
+          total: quiz.length,
+          page: page,
+          pageSize: pageSize,
+          totalPages: Math.ceil(quiz.length / pageSize),
+        },
+      },  
+      'QuizAlgorithm list retrieved successfully',
+    );
+  }
+
+  async createQuizAlgorithm(createQuizAlgorithmDto: CreateQuizAlgorithmDto) {
+    console.log('createQuizAlgorithmDto', createQuizAlgorithmDto);
+    const algorithm = await this.prismaService.quizAlgorithm.create({
+      data: createQuizAlgorithmDto,
+    });
+    console.log('algorithm', algorithm);
+    return ApiResponseUtil.success(
+      algorithm,
+      'QuizAlgorithm created successfully',
+    );
+  }
+
   async getOneQuestionById(id: string) {
     const question = await this.prismaService.question.findUnique({
       where: { id },
@@ -159,31 +259,65 @@ export class QuizService {
         optionAnswers: true,
       },
     });
-    try { 
-      return ApiResponseUtil.success(question, 'Question retrieved successfully');
+    try {
+      return ApiResponseUtil.success(
+        question,
+        'Question retrieved successfully',
+      );
     } catch (error) {
       return ApiResponseUtil.error('Failed to retrieve question');
     }
   }
 
-  async getAllQuestionsByQuizId(id: string) {
-    try {
+  async findAllQuestions(query: QueryDto) {
+    const { page, pageSize, sortBy, sortOrder, search, filters } = query;
+    const questions = await this.prismaService.question.findMany({
+      where: {
+        content: {
+          contains: search,
+        },
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      select: {
+        id: true,
+        content: true,
+        quiz: true,
+      },
+    });
 
-      // "questionIndex": 1,
-      // "parentId": "12917b15-e20d-4f44-b123-c16db101727e",
-      // "question": "天气晴朗的城市天空中飞过一只老鹰",
-      // "type": "radio",
-      // "optionAnswers": ["E", "K", "A", "P", "S"],
-      // "options": [
-      //   "哇，难得一见耶，快自拍合照一张",
-      //   "为什么此时此刻会出现老鹰，我得查查原因",
-      //   "想长出翅膀和它一起飞一会儿",
-      //   "觉得它太孤单了，帮它画几朵云彩陪着它",
-      //   "歪歪歪，我跟你说我看到老鹰了!"
-      // ],
+    try {
+      return ApiResponseUtil.success<ApiResponsePagination<Partial<Question>>>(
+        {
+          data: questions,
+          pagination: {
+            total: questions.length,
+            page: page,
+            pageSize: pageSize,
+            totalPages: Math.ceil(questions.length / pageSize),
+          },
+        },
+        'Questions retrieved successfully',
+      );
+    } catch (error) {
+      return ApiResponseUtil.error('Failed to retrieve questions');
+    }
+  }
+
+  async getAllQuestionsByQuizId(id: string, query: QueryDto) {
+    const { page, pageSize, sortBy, sortOrder, search, filters } = query;
+    try {
       const questions = await this.prismaService.question.findMany({
         where: {
           quizId: id,
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: {
+          [sortBy]: sortOrder,
         },
         include: {
           options: true,
@@ -198,42 +332,62 @@ export class QuizService {
       //   },
       // });
       // console.log('quiz', quiz);
-      return ApiResponseUtil.success(questions, 'Quiz list retrieved successfully');
+      return ApiResponseUtil.success<ApiResponsePagination<Question>>(
+        {
+          data: questions,
+          pagination: {
+            total: questions.length,
+            page: page,
+            pageSize: pageSize,
+            totalPages: Math.ceil(questions.length / pageSize),
+          },
+        },
+        'Quiz list retrieved successfully',
+      );
     } catch (error) {
       return ApiResponseUtil.error('Failed to retrieve quiz list');
     }
   }
 
-  async findAllQuizCategory() {
+  async findAllQuizCategory(query: QueryDto) {
     try {
-      const quiz = await this.prismaService.quizCategory.findMany({
-        include: {
-          quizzes: true,
-        },
-        // select: {
-        //   id: true,
-        //   quiz: true,
-        //   type: true,
-        //   category: true,
-        //   image: true,
-        //   quizIndex: true,
-        //   options: {
-        //     select: {
-        //       id: true,
-        //       content: true,
-        //     },
-        //   },
-        //   optionAnswers: {
-        //     select: {
-        //       id: true,
-        //       content: true,
-        //     },
-        //   },
-        // },
-      });
+      const { page, pageSize, sortBy, sortOrder, search, filters } = query;
 
-      return ApiResponseUtil.success(
-        quiz,
+      const [total, quiz] = await Promise.all([
+        this.prismaService.quizCategory.count({
+          where: {
+            name: {
+              contains: search,
+            },
+          },
+        }),
+        await this.prismaService.quizCategory.findMany({
+          include: {
+            quizzes: true,
+          },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          orderBy: {
+            [sortBy]: sortOrder,
+          },
+          where: {
+            name: {
+              contains: search,
+            },
+          },
+        }),
+      ]);
+
+      return ApiResponseUtil.success<ApiResponsePagination<QuizCategory>>(
+        {
+          data: quiz,
+          pagination: {
+            total,
+            page: query.page,
+            pageSize: query.pageSize,
+            totalPages: Math.ceil(total / query.pageSize),
+          },
+        },
         'QuizClass list retrieved successfully',
       );
     } catch (error) {
@@ -294,23 +448,64 @@ export class QuizService {
   async updateQuestion(id: string, updateQuestionDto: UpdateQuestionDto) {
     try {
       console.log('updateQuestionDto', updateQuestionDto.image);
+
+      // 分离有 ID 和没有 ID 的选项，并确保 ID 不为空
+      const optionsWithIds = updateQuestionDto.options.filter(
+        (option) => option.id && option.id.trim() !== '',
+      );
+      const optionsWithoutIds = updateQuestionDto.options.filter(
+        (option) => !option.id || option.id.trim() === '',
+      );
+
+      // 同样处理 optionAnswers
+      const answersWithIds = updateQuestionDto.optionAnswers.filter(
+        (answer) => answer.id && answer.id.trim() !== '',
+      );
+      const answersWithoutIds = updateQuestionDto.optionAnswers.filter(
+        (answer) => !answer.id || answer.id.trim() === '',
+      );
+
       const changedBlocks = await this.prismaService.question.update({
         where: { id },
         data: {
           content: updateQuestionDto.content,
           image: updateQuestionDto.image,
+          type: updateQuestionDto.type === 'MULTIPLE' ? 'MULTIPLE' : 'RADIO',
           options: {
-            update: updateQuestionDto.options.map((option, index) => ({
-              where: { id: option.id }, // 需要知道每个 option 的 id
-              data: { content: option.content },
-            })),
+            ...(optionsWithIds.length > 0 && {
+              update: optionsWithIds.map((option) => ({
+                where: { id: option.id },
+                data: {
+                  content: option.content,
+                  optionIndex: option.optionIndex,
+                },
+              })),
+            }),
+            ...(optionsWithoutIds.length > 0 && {
+              create: optionsWithoutIds.map((option) => ({
+                content: option.content,
+                optionIndex: option.optionIndex,
+              })),
+            }),
           },
           optionAnswers: {
-            update: updateQuestionDto.optionAnswers.map((option, index) => ({
-              where: { id: option.id }, // 需要知道每个 option 的 id
-              data: { content: option.content },
-            })),
+            ...(answersWithIds.length > 0 && {
+              update: answersWithIds.map((answer) => ({
+                where: { id: answer.id },
+                data: {
+                  content: answer.content,
+                  optionAnswerIndex: answer.optionAnswerIndex,
+                },
+              })),
+            }),
+            ...(answersWithoutIds.length > 0 && {
+              create: answersWithoutIds.map((answer) => ({
+                content: answer.content,
+                optionAnswerIndex: answer.optionAnswerIndex,
+              })),
+            }),
           },
+          powerClass: updateQuestionDto.powerClass,
         },
       });
       const question = await this.getOneQuestionById(changedBlocks.id);
@@ -323,5 +518,49 @@ export class QuizService {
 
   remove(id: number) {
     return `This action removes a #${id} quiz`;
+  }
+
+  async getAllQuizResult() {
+    const result = await this.prismaService.quizResult.findMany({});
+    return ApiResponseUtil.success(
+      result,
+      'QuizResult list retrieved successfully',
+    );
+  }
+
+  async getOneQuizResult(id: string) {
+    const result = await this.prismaService.quizResult.findUnique({
+      where: { id },
+    });
+    return ApiResponseUtil.success(result, 'QuizResult retrieved successfully');
+  }
+
+  async createQuizResult(createQuizResultDto: CreateQuizResultDto) {
+    const result = await this.prismaService.quizResult.create({
+      data: createQuizResultDto,
+    });
+    return ApiResponseUtil.success(result, 'QuizResult created successfully');
+  }
+
+  async updateQuizResult(
+    id: string,
+    updateQuizResultDto: {
+      name: string;
+      description: string;
+      headerImage: string;
+    },
+  ) {
+    const result = await this.prismaService.quizResult.update({
+      where: { id },
+      data: updateQuizResultDto,
+    });
+    return ApiResponseUtil.success(result, 'QuizResult updated successfully');
+  }
+
+  async deleteQuizResult(id: string) {
+    const result = await this.prismaService.quizResult.delete({
+      where: { id },
+    });
+    return ApiResponseUtil.success(result, 'QuizResult deleted successfully');
   }
 }

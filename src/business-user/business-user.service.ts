@@ -4,11 +4,72 @@ import { UpdateBusinessUserDto } from './dto/update-business-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ApiResponseUtil } from 'base/utils/api-response.util';
 import { Prisma } from '@prisma/client';
+import { QueryDto } from 'src/dto/query.dto';
 
 @Injectable()
 export class BusinessUserService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  wxapp(businessUserId: string) {
+    return this.prismaService.businessUser.findUnique({
+      where: { id: businessUserId },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        quizQRImage: true,
+        selectedQuiz: {
+          select: {
+            id: true,
+            name: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+                quizResult: {
+                  select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    headerImage: true,
+                    personal: true,
+                  },
+                },
+              },
+            },
+            questions: {
+              select: {
+                id: true,
+                content: true,
+                image: true,
+                type: true,
+                typeClass: true,
+                questionIndex: true,
+                powerClass: true,
+                options: {
+                  select: {
+                    id: true,
+                    content: true,
+                    optionIndex: true,
+                  },
+                },
+                optionAnswers: {
+                  select: {
+                    id: true,
+                    content: true,
+                    optionAnswerIndex: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
   // constructor(prismaClient: PrismaService) {}
   async create(createBusinessUserDto: CreateBusinessUserDto) {
     const d = await this.prismaService.businessUser.create({
@@ -26,60 +87,13 @@ export class BusinessUserService {
     }
   }
 
-  // async findAll(params?: {
-  //   skip?: number;
-  //   take?: number;
-  //   orderBy?: Prisma.BusinessUserOrderByWithRelationInput;
-  //   where?: Prisma.BusinessUserWhereInput;
-  // }) {
-  //   try {
-  //     const [businessUsers, total] = await Promise.all([
-  //       this.prismaService.businessUser.findMany({
-  //         skip: params?.skip || 0,
-  //         take: params?.take || 10,
-  //         orderBy: params?.orderBy || { createdAt: 'desc' },
-  //         where: params?.where || {},
-  //         select: {
-  //           id: true,
-  //           name: true,
-  //           image: true,
-  //           isActive: true,
-  //           createdAt: true,
-  //           updatedAt: true
-  //         }
-  //       }),
-  //       this.prismaService.businessUser.count({
-  //         where: params?.where
-  //       })
-  //     ]);
-
-  //     return ApiResponseUtil.success(
-  //       {
-  //         items: businessUsers,
-  //         total,
-  //         page: params?.skip ? Math.floor(params.skip / (params.take || 10)) + 1 : 1,
-  //         pageSize: params?.take || 10
-  //       },
-  //       'Business users retrieved successfully'
-  //     );
-  //   } catch (error) {
-  //     return ApiResponseUtil.error(
-  //       `Failed to retrieve business users: ${error.message}`
-  //     );
-  //   }
-  // }
-
-  async findAll(params?: {
-    skip?: number;
-    take?: number;
-    orderBy?: Prisma.BusinessUserOrderByWithRelationInput;
-    where?: Prisma.BusinessUserWhereInput;
-  }) {
+  async findAll(params: QueryDto) {
+    const { page, pageSize, sortBy, sortOrder, search, filters } = params;
     const businessUsers = await this.prismaService.businessUser.findMany({
-      skip: params?.skip || 0,
-      take: params?.take || 10,
-      orderBy: params?.orderBy || { createdAt: 'desc' },
-      where: params?.where || {},
+      // skip: page,
+      // take: pageSize,
+      orderBy: { [sortBy]: sortOrder },
+      where: filters,
       select: {
         id: true,
         name: true,
@@ -87,6 +101,8 @@ export class BusinessUserService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
+        quizQRImage: true,
+        selectedQuizId: true,
       },
     });
     try {
@@ -103,11 +119,27 @@ export class BusinessUserService {
     return `This action returns a #${id} businessUser`;
   }
 
-  update(id: number, updateBusinessUserDto: UpdateBusinessUserDto) {
-    return `This action updates a #${id} businessUser`;
+  update(id: string, updateBusinessUserDto: UpdateBusinessUserDto) {
+    return this.prismaService.businessUser.update({
+      where: { id },
+      data: updateBusinessUserDto,
+    });
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} businessUser`;
+  generateQuizQRImage(id: string, image: string) {
+    return this.prismaService.businessUser.update({
+      where: { id },
+      data: { quizQRImage: image },
+    });
+  }
+  updateActive(id: string, isActive: boolean) {
+    return this.prismaService.businessUser.update({
+      where: { id },
+      data: { isActive },
+    });
+  }
+  remove(id: string) {
+    return this.prismaService.businessUser.delete({
+      where: { id },
+    });
   }
 }
