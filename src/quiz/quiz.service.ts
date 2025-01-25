@@ -24,6 +24,7 @@ export class QuizService {
     id: string,
     createQuestionDto: CreateQuestionDto | CreateQuestionDto[],
   ) {
+    // console.log('createQuestionDto.......', createQuestionDto);
     if (!Array.isArray(createQuestionDto)) {
       await this.prismaService.quiz.update({
         where: { id },
@@ -34,6 +35,7 @@ export class QuizService {
               image: createQuestionDto.image ? createQuestionDto.image : null,
               questionIndex: createQuestionDto.questionIndex,
               typeClass: createQuestionDto.typeClass,
+              powerClass: createQuestionDto.powerClass,
               type:
                 createQuestionDto.type === 'MULTIPLE' ? 'MULTIPLE' : 'RADIO',
               optionAnswers: {
@@ -69,6 +71,7 @@ export class QuizService {
               image: question.image,
               questionIndex: question.questionIndex,
               typeClass: question.typeClass,
+              powerClass: question.powerClass,
               type: question.type === 'MULTIPLE' ? 'MULTIPLE' : 'RADIO',
               options: {
                 create: question.options.map((option) => ({
@@ -509,7 +512,7 @@ export class QuizService {
         },
       });
       const question = await this.getOneQuestionById(changedBlocks.id);
-      return ApiResponseUtil.success(question, 'Question updated successfully');
+      return question;
     } catch (error) {
       console.log(error, 'error: updateQuestion');
       return ApiResponseUtil.error('Failed to update question');

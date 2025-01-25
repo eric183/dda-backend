@@ -1,4 +1,4 @@
-import { QuizType } from '@prisma/client';
+import { PowerClass, QuizType } from '@prisma/client';
 import { IsArray, IsNumber } from 'class-validator';
 
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
@@ -38,4 +38,8 @@ export class CreateQuestionDto {
   @IsString()
   @IsOptional()
   type: QuizType; // 单选题还是多选题
+
+  @IsString()
+  @IsOptional()
+  powerClass: PowerClass;
 }
