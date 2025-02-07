@@ -109,8 +109,8 @@ model QuizCategory {
 model Quiz {
   id         String       @id @default(cuid())
   name       String // 题型名称
-  categoryId String
-  category   QuizCategory @relation(fields: [categoryId], references: [id])
+  categoryId String?
+  category   QuizCategory? @relation(fields: [categoryId], references: [id])
 
   businessUsers BusinessUser[]
   questions     Question[] // 关联的题目

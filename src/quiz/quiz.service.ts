@@ -118,7 +118,6 @@ export class QuizService {
     id: string,
     updateQuizCategoryDto: UpdateQuizCategoryDto,
   ) {
-    console.log('updateQuizCategoryDto....', updateQuizCategoryDto);
     const quizDataWithIds = updateQuizCategoryDto.quizzes.filter(
       (quiz) => quiz.id,
     );
@@ -131,37 +130,72 @@ export class QuizService {
       });
 
     await this.prismaService.$transaction(async (tx) => {
+      // 先获取当前 category 下的所有 quiz
+      const currentQuizzes = await tx.quiz.findMany({
+        where: { categoryId: id },
+        select: { id: true },
+      });
+
+      console.log('currentQuizzes', currentQuizzes);
+      // 找出需要删除的 quiz IDs（在当前列表中但不在新列表中的）
+      const quizIdsToDelete = currentQuizzes
+        .map((quiz) => quiz.id)
+        .filter(
+          (currentId) => !quizDataWithIds.some((quiz) => quiz.id === currentId),
+        );
+      console.log('quizIdsToDelete', quizIdsToDelete);
+      // 删除不再需要的关联关系
+      if (quizIdsToDelete.length > 0) {
+        await tx.quiz.updateMany({
+          where: { id: { in: quizIdsToDelete } },
+          data: {
+            categoryId: null,
+          },
+        });
+        await tx.quiz.deleteMany({
+          where: { id: { in: quizIdsToDelete } },
+        });
+      }
+
+      // 更新 category 本身
       await tx.quizCategory.update({
         where: { id },
         data: {
-          // 使用扩展运算符创建一个新对象
-          ...updateQuizCategoryDto.name && { name: updateQuizCategoryDto.name },
-          ...updateQuizCategoryDto.algorithmId && { 
+          ...(updateQuizCategoryDto.name && {
+            name: updateQuizCategoryDto.name,
+          }),
+          ...(updateQuizCategoryDto.algorithmId && {
             algorithm: {
-              connect: { id: updateQuizCategoryDto.algorithmId }
-            }
-          },
-          ...updateQuizCategoryDto.quizResultId && {
+              connect: { id: updateQuizCategoryDto.algorithmId },
+            },
+          }),
+          ...(updateQuizCategoryDto.quizResultId && {
             quizResult: {
-              connect: { id: updateQuizCategoryDto.quizResultId }
-            }
-          }
+              connect: { id: updateQuizCategoryDto.quizResultId },
+            },
+          }),
         },
       });
-      // 更新所有含有 ID 的 quiz 信息，例如 name 等 { name: quiz.name }
+
+      // 更新保留的 quizzes
       await Promise.all(
         quizDataWithIds.map((quiz) =>
           tx.quiz.update({
             where: { id: quiz.id },
-            data: { name: quiz.name },
+            data: {
+              name: quiz.name,
+              categoryId: id, // 确保关联关系
+            },
           }),
         ),
       );
 
-      // 创建所有不含 ID 的 quiz, 并关联到 category
-      await tx.quiz.createMany({
-        data: quizDataWithoutIds.map((quiz) => ({ ...quiz, categoryId: id })),
-      });
+      // 创建新的 quizzes
+      if (quizDataWithoutIds.length > 0) {
+        await tx.quiz.createMany({
+          data: quizDataWithoutIds.map((quiz) => ({ ...quiz, categoryId: id })),
+        });
+      }
     });
 
     return ApiResponseUtil.success(true, 'QuizCategory updated successfully');
@@ -209,15 +243,8 @@ export class QuizService {
     }
   }
 
-  async findAllQuizAlgorithm(query: QueryDto  ) {
-    const {
-      page,
-      pageSize,
-      sortBy,
-      sortOrder,
-      search,
-      filters,
-    } = query;
+  async findAllQuizAlgorithm(query: QueryDto) {
+    const { page, pageSize, sortBy, sortOrder, search, filters } = query;
     const quiz = await this.prismaService.quizAlgorithm.findMany({
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -237,7 +264,7 @@ export class QuizService {
           pageSize: pageSize,
           totalPages: Math.ceil(quiz.length / pageSize),
         },
-      },  
+      },
       'QuizAlgorithm list retrieved successfully',
     );
   }

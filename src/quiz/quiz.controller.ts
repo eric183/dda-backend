@@ -203,4 +203,9 @@ export class QuizController {
   ) {
     return this.quizService.updateQuizResult(id, updateQuizResultDto);
   }
+
+  @Delete('/result/:id')
+  deleteQuizResult(@Param('id') id: string) {
+    return this.quizService.deleteQuizResult(id);
+  }
 }
