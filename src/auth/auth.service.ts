@@ -1,13 +1,44 @@
 // auth/auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
-export class AuthService {
-  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
+export class AuthService implements OnModuleInit {
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private prisma: PrismaService,
+    private jwtService: JwtService, // @Inject(CACHE_MANAGER) // private cacheManager: Cache,
+  ) {}
+
+  async onModuleInit() {
+    // // 初始化时获取token
+    await this.getAndCacheAccessToken();
+
+    // 设置定时任务，每7200秒刷新一次
+    setInterval(async () => {
+      await this.getAndCacheAccessToken();
+    }, 7200 * 1000);
+  }
+
+  private async getAndCacheAccessToken() {
+    // const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`;
+    // const res = await fetch(url);
+    // const data = await res.json();
+    // // 将access_token存入缓存
+    // await this.cacheManager.set('wx_access_token', data.access_token, 7200);
+    await this.cacheManager.set(
+      'wx_access_token',
+      {
+        access_token: '123',
+        expires_in: 7200,
+      },
+      7200,
+    );
+  }
 
   async validateUser(email: string, password: string): Promise<any> {
     if (!email) {

@@ -6,7 +6,7 @@ export class ApiResponseUtil {
     return {
       message,
       code: ApiCode.SUCCESS,
-      data,
+      result: data,
     };
   }
 
@@ -17,7 +17,7 @@ export class ApiResponseUtil {
     return {
       message,
       code,
-      data: null,
+      result: null,
     };
   }
 
@@ -25,7 +25,7 @@ export class ApiResponseUtil {
     return {
       message,
       code: ApiCode.NOT_FOUND,
-      data: null,
+      result: null,
     };
   }
 }

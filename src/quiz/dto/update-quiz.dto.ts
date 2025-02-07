@@ -3,7 +3,7 @@ import { CreateQuizDto } from './create-quiz.dto';
 
 export class UpdateQuizDto extends PartialType(CreateQuizDto) {
   id: string;
-  quiz: string;
+  content: string;
   options: {
     id: string;
     content: string;

@@ -3,6 +3,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { User, Prisma, InviteCode, RoleType } from '@prisma/client';
 import { ApiResponseUtil } from 'base/utils/api-response.util';
 import { BtUtil } from 'base/utils/bt.util';
+import { QueryDto } from 'src/dto/query.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { v4 as uuidv4 } from 'uuid';
 @Injectable()
@@ -13,6 +14,7 @@ export class UserService {
 
   onModuleInit() {
     this.checkIfSuperAdminExistsOrCreate();
+    this.checkIfMightMeUserExistsOrCreate();
   }
   // constructor(
   //   private readonly encryptionService: EncryptionService,
@@ -37,6 +39,23 @@ export class UserService {
     }
   }
 
+  async checkIfMightMeUserExistsOrCreate() {
+    const mightMeUser = await this.prismaService.businessUser.findFirst({
+      where: {
+        name: 'MIGHT_ME',
+      },
+    });
+
+    if (!mightMeUser) {
+      const d = await this.prismaService.businessUser.create({
+        data: {
+          id: 'mightmeapp2015newagegenerate',
+          name: 'MIGHT_ME',
+          SDKTokenId: uuidv4(),
+        },
+      });
+    }
+  }
   async getUser(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
   ): Promise<User | null> {
@@ -96,21 +115,21 @@ export class UserService {
     });
   }
 
-  async users(params: {
-    skip?: number;
-    take?: number;
-    cursor?: Prisma.UserWhereUniqueInput;
-    where?: Prisma.UserWhereInput;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-  }) {
-    const { skip, take, cursor, where, orderBy } = params;
+  async findAll(query: QueryDto) {
+    const { page, pageSize, sortBy, sortOrder, search, filters } = query;
+
     // console.log(this.prismaService, 'adskljfdalskjflasdkjflkasdjf');
     const users = await this.prismaService.user.findMany({
-      skip,
-      take,
-      cursor,
-      where,
-      orderBy,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      where: {
+        name: {
+          contains: search,
+        },
+      },
       select: {
         id: true,
         email: true,
@@ -134,6 +153,7 @@ export class UserService {
 
   async createUser(data: Prisma.UserCreateInput) {
     const hashedPassword = await BtUtil.hashPassword(data.password);
+
     const response = await this.prismaService.user.create({
       data: {
         ...data,

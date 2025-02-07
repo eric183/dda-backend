@@ -1,16 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Delete, Get, Param } from '@nestjs/common';
 import { CdkeyService } from './cdkey.service';
-import { CreateCdkeyDto } from './dto/create-cdkey.dto';
-import { UpdateCdkeyDto } from './dto/update-cdkey.dto';
-import { EncryptionService } from 'src/encryption/encryption.service';
 
 const STR_LENGTH = 10;
 
