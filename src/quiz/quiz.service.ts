@@ -202,8 +202,16 @@ export class QuizService {
   }
 
   async deleteQuizCategory(id: string) {
-    await this.prismaService.quizCategory.delete({
-      where: { id },
+    await this.prismaService.$transaction(async (tx) => {
+      // First, delete all associated quizzes
+      await tx.quiz.deleteMany({
+        where: { categoryId: id },
+      });
+
+      // Then delete the category
+      await tx.quizCategory.delete({
+        where: { id },
+      });
     });
     return ApiResponseUtil.success(true, 'QuizCategory deleted successfully');
   }
