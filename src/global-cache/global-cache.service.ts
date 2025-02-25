@@ -45,7 +45,7 @@ export class GlobalCacheService implements OnModuleInit {
       }),
     });
     const data = await res.json();
-    console.log(data, '......caching');
+    console.log(data, '......caching wx_access_token');
     if (!res.ok || data.errcode) {
       throw new Error(`Failed to fetch WeChat token: ${JSON.stringify(data)}`);
     }

@@ -1,5 +1,5 @@
 import { PowerClass, QuizType } from '@prisma/client';
-import { IsArray, IsNumber } from 'class-validator';
+import { IsArray, IsBoolean, IsNumber } from 'class-validator';
 
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
@@ -42,4 +42,8 @@ export class CreateQuestionDto {
   @IsString()
   @IsOptional()
   powerClass: PowerClass;
+
+  @IsBoolean()
+  @IsOptional()
+  canSkip: boolean;
 }

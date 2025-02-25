@@ -21,4 +21,8 @@ export class UpdateQuizCategoryDto {
   @IsString()
   @IsOptional()
   quizResultId?: string;
+
+  @IsString()
+  @IsOptional()
+  quizBeginnerId?: string;
 }

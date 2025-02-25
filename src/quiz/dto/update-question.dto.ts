@@ -18,4 +18,5 @@ export class UpdateQuestionDto extends PartialType(CreateQuizDto) {
   image: string;
   type: string;
   powerClass: PowerClass;
+  canSkip: boolean;
 }

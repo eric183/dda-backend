@@ -26,8 +26,8 @@ export class WxController {
   }
 
   @Post('qrcode')
-  generateQrCode(@Body() body: { tenant: string; width: number }) {
-    return this.wxService.generateQrCode(body.tenant, body.width);
+  generateQrCode(@Body() body: { tenant: string; width: number, isHyaline: boolean, envVersion: string }) {
+    return this.wxService.generateQrCode(body.tenant, body.width, body.isHyaline, body.envVersion );
   }
 
   @Get('qrcode/:id')

@@ -100,6 +100,9 @@ model QuizCategory {
   algorithmId String
   algorithm   QuizAlgorithm @relation(fields: [algorithmId], references: [id])
 
+  quizBeginnerId String?
+  quizBeginner   QuizBeginner? @relation(fields: [quizBeginnerId], references: [id])
+
   quizResultId String?
   quizResult   QuizResult? @relation(fields: [quizResultId], references: [id])
 
@@ -124,6 +127,18 @@ model QuizAlgorithm {
   description  String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+  QuizCategory QuizCategory[]
+}
+
+model QuizBeginner {
+  id String @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name String?
+  description String?
+  headerImage String?
+  backgroundImage String?
+  
   QuizCategory QuizCategory[]
 }
 
@@ -152,6 +167,8 @@ model Personal {
   quizResultId     String
   quizResult       QuizResult @relation(fields: [quizResultId], references: [id])
 
+  describePhoto String?
+
   personalAvatar String
   description    String
 }
@@ -164,6 +181,7 @@ model Question {
   quizId        String
   image         String?
   typeClass     String?
+  canSkip       Boolean?     
   type          QuizType
   quiz          Quiz           @relation(fields: [quizId], references: [id])
   options       Option[] // 关联的选项

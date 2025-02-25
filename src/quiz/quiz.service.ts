@@ -36,6 +36,7 @@ export class QuizService {
               questionIndex: createQuestionDto.questionIndex,
               typeClass: createQuestionDto.typeClass,
               powerClass: createQuestionDto.powerClass,
+              canSkip: createQuestionDto.canSkip,
               type:
                 createQuestionDto.type === 'MULTIPLE' ? 'MULTIPLE' : 'RADIO',
               optionAnswers: {
@@ -172,6 +173,11 @@ export class QuizService {
           ...(updateQuizCategoryDto.quizResultId && {
             quizResult: {
               connect: { id: updateQuizCategoryDto.quizResultId },
+            },
+          }),
+          ...(updateQuizCategoryDto.quizBeginnerId && {
+            quizBeginner: {
+              connect: { id: updateQuizCategoryDto.quizBeginnerId },
             },
           }),
         },
@@ -324,6 +330,7 @@ export class QuizService {
         id: true,
         content: true,
         quiz: true,
+        canSkip: true,
       },
     });
 
@@ -402,6 +409,7 @@ export class QuizService {
         await this.prismaService.quizCategory.findMany({
           include: {
             quizzes: true,
+            quizBeginner: true,
           },
           skip: (page - 1) * pageSize,
           take: pageSize,
@@ -509,6 +517,7 @@ export class QuizService {
           content: updateQuestionDto.content,
           image: updateQuestionDto.image,
           type: updateQuestionDto.type === 'MULTIPLE' ? 'MULTIPLE' : 'RADIO',
+          canSkip: updateQuestionDto.canSkip,
           options: {
             ...(optionsWithIds.length > 0 && {
               update: optionsWithIds.map((option) => ({
@@ -573,12 +582,62 @@ export class QuizService {
     return ApiResponseUtil.success(result, 'QuizResult retrieved successfully');
   }
 
+  async getAllQuizBeginner(query: QueryDto) {
+    const { page, pageSize, sortBy, sortOrder, search, filters } = query;
+    const result = await this.prismaService.quizBeginner.findMany({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: { [sortBy]: sortOrder },
+      where: {
+        name: {
+          contains: search,
+        },
+      },
+    });
+    return ApiResponseUtil.success(
+      result,
+      'QuizBeginner list retrieved successfully',
+    );
+  }
+
+  async createQuizBeginner(createQuizBeginnerDto: {
+    name: string;
+    description: string;
+    headerImage: string;
+    backgroundImage: string;
+  }) {
+    const result = await this.prismaService.quizBeginner.create({
+      data: createQuizBeginnerDto,
+    });
+    return ApiResponseUtil.success(result, 'QuizBeginner created successfully');
+  }
+
   async createQuizResult(createQuizResultDto: CreateQuizResultDto) {
     const result = await this.prismaService.quizResult.create({
       data: createQuizResultDto,
     });
     return ApiResponseUtil.success(result, 'QuizResult created successfully');
   }
+
+  async updateQuizBeginner(id: string, updateQuizBeginnerDto: {
+    name?: string;
+    description?: string;
+    headerImage?: string;
+    backgroundImage?: string;
+  }) {
+    const result = await this.prismaService.quizBeginner.update({
+      where: { id },
+      data: updateQuizBeginnerDto,
+    });
+    return ApiResponseUtil.success(result, 'QuizBeginner updated successfully');
+  }
+
+  async deleteQuizBeginner(id: string) {
+    const result = await this.prismaService.quizBeginner.delete({
+      where: { id },
+    });
+    return ApiResponseUtil.success(result, 'QuizBeginner deleted successfully');
+  } 
 
   async updateQuizResult(
     id: string,

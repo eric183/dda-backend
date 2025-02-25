@@ -141,6 +141,7 @@ export class QuizController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+    console.log(id, 'id....dasjfasldj');
     return this.quizService.findOne(id);
   }
 
@@ -186,9 +187,60 @@ export class QuizController {
     return this.quizService.remove(+id);
   }
 
+  @Get('/beginner/all')
+  getAllQuizBeginner(@Query() query: QueryDto) {
+    const {
+      page = 1,
+      pageSize = 100000,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      search = '',
+      filters = {},
+    } = query;
+    console.log(query, 'query....dasjfasldj');
+    return this.quizService.getAllQuizBeginner({
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+      search,
+      filters,
+    });
+  }
+
+  @Post('/beginner')
+  createQuizBeginner(@Body() createQuizBeginnerDto: {
+    name: string;
+    description: string;
+    headerImage: string;
+    backgroundImage: string;
+  }) {
+    return this.quizService.createQuizBeginner(createQuizBeginnerDto);
+  }
+
+  
+  @Delete('/beginner/:id')
+  deleteQuizBeginner(@Param('id') id: string) {
+    return this.quizService.deleteQuizBeginner(id);
+  }
+
   @Post('/result')
   createQuizResult(@Body() createQuizResultDto: CreateQuizResultDto) {
     return this.quizService.createQuizResult(createQuizResultDto);
+  }
+
+  @Patch('/beginner/:id')
+  updateQuizBeginner(
+    @Param('id') id: string,
+    @Body()
+    updateQuizBeginnerDto: {
+      name: string;
+      description: string;
+      headerImage: string;
+      backgroundImage: string;
+    },
+  ) {
+    return this.quizService.updateQuizBeginner(id, updateQuizBeginnerDto);
   }
 
   @Patch('/result/:id')

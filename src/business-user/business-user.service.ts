@@ -29,6 +29,14 @@ export class BusinessUserService {
               select: {
                 id: true,
                 name: true,
+                quizBeginner: {
+                  select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    backgroundImage: true,
+                  },
+                },
                 quizResult: {
                   select: {
                     id: true,
@@ -49,6 +57,7 @@ export class BusinessUserService {
                 typeClass: true,
                 questionIndex: true,
                 powerClass: true,
+                canSkip: true,
                 options: {
                   select: {
                     id: true,

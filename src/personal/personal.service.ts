@@ -13,6 +13,7 @@ export class PersonalService {
   async create(createPersonalDto: CreatePersonalDto) {
     const personal = await this.prisma.personal.create({
       data: {
+        describePhoto: createPersonalDto.describePhoto,
         personalCategory: createPersonalDto.personalCategory,
         personalAvatar: createPersonalDto.personalAvatar,
         personalAnalyze: createPersonalDto.personalAnalyze,

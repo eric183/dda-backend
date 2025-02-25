@@ -6,4 +6,5 @@ export class CreatePersonalDto {
   personalPower: string;
   description: string;
   quizResultId: string;
+  describePhoto?: string;
 }
