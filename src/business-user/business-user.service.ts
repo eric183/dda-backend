@@ -64,6 +64,9 @@ export class BusinessUserService {
                     content: true,
                     optionIndex: true,
                   },
+                  orderBy: {
+                    optionIndex: 'asc'
+                  },
                 },
                 optionAnswers: {
                   select: {
@@ -71,7 +74,13 @@ export class BusinessUserService {
                     content: true,
                     optionAnswerIndex: true,
                   },
+                  orderBy: {
+                    optionAnswerIndex: 'asc'
+                  },
                 },
+              },
+              orderBy: {
+                questionIndex: 'asc'
               },
             },
           },
