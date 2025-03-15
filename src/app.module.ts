@@ -16,6 +16,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { QuizModule } from './quiz/quiz.module';
 import { UserModule } from './user/user.module';
 import { WxModule } from './wx/wx.module';
+import { CoachModule } from './coach/coach.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { WxModule } from './wx/wx.module';
     GlobalCacheModule,
     WxModule,
     PersonalModule,
+    CoachModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, EncryptionService],

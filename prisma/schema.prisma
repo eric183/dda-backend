@@ -8,206 +8,1654 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model SDKToken {
-  id         String       @id @default(cuid())
-  token      String
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  metadata   Json?
-  businessId String
-  isActive   Boolean      @default(true)
-  expiredAt  DateTime
-  business   BusinessUser @relation(fields: [businessId], references: [id])
-
-  @@unique([businessId])
-  @@index([businessId])
-  @@map("sdk_token")
-}
-
-model EncryptedData {
-  id         String     @id @default(cuid())
-  ciphertext String
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  slug       String?    @unique
-  metadata   Json?
-  shortLink  ShortLink? @relation(fields: [slug], references: [slug])
-}
-
-model ShortLink {
-  id              String         @id @default(nanoid(10))
-  slug            String?        @unique @default(nanoid(10))
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  encryptedDataId String?        @unique
-  encryptedData   EncryptedData?
-}
-
-
+// 用户管理
 model User {
-  id          String       @id @default(cuid())
-  email       String       @unique
-  password    String
-  name        String?
-  avatar      String?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  lastLoginAt DateTime?
-  metadata    Json?
-  role        RoleType     @default(USER)
-  inviteCode  InviteCode[]
+  id          Int       @id @default(autoincrement())
+  openId      String?   @unique // 微信 openId
+  unionId     String?   @unique // 微信 unionId
+  mobile      String?   @unique // 用户手机号
+  email       String?   @unique // 用户邮箱
+  password    String? // 加密密码
+  name        String? // 用户真实姓名
+  nickname    String? // 用户昵称
+  avatar      String? // 用户头像URL
+  birthday    DateTime? // 用户生日
+  gender      Gender? // 用户性别
+  level       Int       @default(1) // 用户会员等级
+  points      Int       @default(0) // 当前积分余额
+  accumPoints Int       @default(0) // 累计获得积分
+  score       Int       @default(0) // 用户评分
+  isVerified  Boolean   @default(false) // 身份验证状态
+  lastLoginAt DateTime? // 最后登录时间
+  role        UserRole  @default(CUSTOMER) // 用户角色
+
+  // 关联关系
+  member              Member? // 关联的会员资料
+  contactInfos        ContactInfo[] // 联系方式记录
+  addresses           Address[] // 用户地址
+  orders              Order[] // 用户下的订单
+  appointmentsMade    Appointment[]           @relation("UserAppointments") // 用户预约
+  reviews             Review[] // 用户评价
+  tickets             SkiTicket[] // 用户购买的票券
+  savedPaymentMethods PaymentMethod[] // 保存的支付方式
+  rentals             RentalItem[] // 租赁设备
+  lessonEnrollments   LessonEnrollment[] // 课程报名记录
+  notifications       Notification[] // 用户通知
+  cartItems           CartItem[] // 购物车项目
+  favoriteItems       FavoriteItem[] // 收藏商品
+  coachProfile        Coach? // 教练资料（如果用户是教练）
+  staffProfile        Staff? // 员工资料（如果用户是员工）
+  learningRecords     StudentLearningRecord[] // 学习记录
+
+  // 添加缺少的关系字段
+  performanceReviews CoachPerformanceReview[] @relation("ReviewerRelation") // 作为评估者的绩效评估
+  coachFeedbacks     CoachFeedback[] // 对教练的反馈
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("users")
 }
 
+enum Gender {
+  MALE // 男
+  FEMALE // 女
+  OTHER // 其他
+}
 
-model BusinessUser {
-  id        String   @id @default(cuid())
-  name      String
-  image     String?
-  isActive  Boolean  @default(true)
+enum UserRole {
+  ADMIN // 管理员
+  MANAGER // 经理
+  STAFF // 员工
+  COACH // 教练
+  CUSTOMER // 顾客
+}
+
+model Member {
+  id                Int            @id @default(autoincrement()) // 会员ID
+  userId            Int            @unique // 关联用户ID
+  membershipNumber  String         @unique // 会员卡号
+  membershipType    MembershipType // 会员类型
+  startDate         DateTime // 开始日期
+  expiryDate        DateTime // 过期日期
+  isActive          Boolean        @default(true) // 是否激活
+  discountRate      Float          @default(1.0) // 折扣率，1.0表示无折扣，0.8表示8折
+  specialPrivileges String? // 特殊权益（JSON字符串）
+
+  // 关联关系
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membershipCards MembershipCard[] // 会员卡
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("members")
+}
+
+enum MembershipType {
+  BASIC // 基础会员
+  SILVER // 白银会员
+  GOLD // 黄金会员
+  PLATINUM // 铂金会员
+  DIAMOND // 钻石会员
+}
+
+model MembershipCard {
+  id         Int      @id @default(autoincrement()) // 会员卡ID
+  memberId   Int // 会员ID
+  cardNumber String   @unique // 卡号
+  issuedDate DateTime @default(now()) // 发卡日期
+  expiryDate DateTime // 过期日期
+  isActive   Boolean  @default(true) // 是否激活
+
+  // 关联关系
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("membership_cards")
+}
+
+model Address {
+  id            Int     @id @default(autoincrement()) // 地址ID
+  userId        Int // 用户ID
+  name          String // 联系人姓名
+  phone         String // 联系电话
+  province      String // 省份
+  city          String // 城市
+  district      String // 区/县
+  detailAddress String // 详细地址
+  postalCode    String? // 邮政编码
+  isDefault     Boolean @default(false) // 是否默认地址
+
+  // 关联关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("addresses")
+}
+
+model ContactInfo {
+  id           Int         @id @default(autoincrement()) // 联系信息ID
+  userId       Int // 用户ID
+  contactType  ContactType // 联系方式类型
+  contactValue String // 联系方式值
+  isVerified   Boolean     @default(false) // 是否已验证
+  isPrimary    Boolean     @default(false) // 是否主要联系方式
+
+  // 关联关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("contact_info")
+}
+
+enum ContactType {
+  PHONE // 电话
+  EMAIL // 邮箱
+  WECHAT // 微信
+  WHATSAPP // WhatsApp
+  OTHER // 其他
+}
+
+// 员工与教练
+model Staff {
+  id          Int      @id @default(autoincrement()) // 员工ID
+  userId      Int      @unique // 用户ID
+  employeeId  String   @unique // 员工编号
+  jobTitle    String // 职位名称
+  department  String // 部门
+  hireDate    DateTime // 入职日期
+  salary      Float? // 薪资
+  permissions String? // 权限（JSON字符串）
+  isActive    Boolean  @default(true) // 是否在职
+
+  // 关联关系
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  managedResort SkiResort? @relation("ResortManager") // 管理的滑雪场
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("staff")
+}
+
+enum ApprovalStatus {
+  PENDING // 待审核
+  UNDER_REVIEW // 审核中
+  APPROVED // 已批准
+  REJECTED // 已拒绝
+  SUSPENDED // 已暂停
+  REVOKED // 已撤销
+}
+
+enum CoachLevel {
+  BEGINNER // 初级教练
+  INTERMEDIATE // 中级教练
+  ADVANCED // 高级教练
+  EXPERT // 专家教练
+  MASTER // 大师教练
+}
+
+model Coach {
+  id              Int        @id @default(autoincrement()) // 教练ID
+  userId          Int        @unique // 用户ID
+  bio             String     @db.Text // 个人简介
+  specialties     String // 专长领域（JSON数组）
+  experienceYears Int        @default(0) // 教学经验年限
+  certifications  String? // 证书（JSON数组）
+  hourlyRate      Float // 每小时收费
+  availability    String? // 可用时间（JSON结构）
+  isActive        Boolean    @default(true) // 是否在职
+  coachLevel      CoachLevel // 教练等级
+  languagesSpoken String? // 会说的语言（JSON数组）
+  rating          Float      @default(5.0) // 评分
+
+  // 审批状态相关
+  approvalStatus  ApprovalStatus @default(PENDING) // 审批状态
+  approvedAt      DateTime? // 批准时间
+  approvedBy      Int? // 批准人ID (管理员)
+  rejectionReason String? // 拒绝原因
+
+  // 身份验证和资质文档
+  identityDocuments      String? // 身份证明文档（JSON数组）
+  qualificationDocuments String? // 资格证明文档（JSON数组）
+
+  // 教练门店信息
+  resortId Int? // 所属滑雪场ID
+  resort   SkiResort? @relation(fields: [resortId], references: [id]) // 所属滑雪场
+
+  // 关联关系
+  user                 User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedules            CoachSchedule[] // 教练课程表
+  lessons              Lesson[] // 教授的课程
+  reviews              Review[]                @relation("CoachReviews") // 收到的评价
+  applications         CoachApplication[] // 申请记录
+  certificationRecords CoachCertification[] // 认证记录
+  evaluations          CoachEvaluation[] // 绩效评估
+  trainingEnrollments  TrainingEnrollment[] // 培训报名
+  incomes              CoachIncome[] // 收入记录
+  settlements          CoachSettlement[] // 结算记录
+  leadingTeams         CoachTeam[]             @relation("TeamLeader") // 作为负责人的团队
+  teamMemberships      CoachTeamMember[] // 团队成员关系
+  statistics           CoachStatistics? // 教练统计数据
+  workLogs             CoachWorkLog[] // 工作日志
+  studentRecords       StudentLearningRecord[] // 学生学习记录
+
+  // 添加缺少的关系字段
+  performanceMetrics CoachPerformanceMetric[] // 绩效指标
+  performanceReviews CoachPerformanceReview[] // 绩效评估
+  availabilities     CoachAvailability[] // 可用时间
+  qualifications     CoachQualification[] // 资质
+  specialtyRecords   CoachSpecialty[] // 专长记录
+  areaExpertise      CoachAreaExpertise[] // 专业领域
+  feedbacks          CoachFeedback[] // 反馈
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coaches")
+}
+
+model CoachSchedule {
+  id              Int            @id @default(autoincrement()) // 课程表ID
+  coachId         Int // 教练ID
+  date            DateTime // 日期
+  startTime       DateTime // 开始时间
+  endTime         DateTime // 结束时间
+  isAvailable     Boolean        @default(true) // 是否可用
+  scheduleType    ScheduleType   @default(REGULAR) // 排班类型
+  maxBookings     Int? // 最大预约数量
+  currentBookings Int            @default(0) // 当前预约数量
+  location        String? // 上课地点
+  notes           String? // 备注
+  status          ScheduleStatus @default(ACTIVE) // 排班状态
+
+  // 关联关系
+  coach        Coach         @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  appointments Appointment[] // 预约记录
+  shifts       CoachShift[] // 班次记录
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_schedules")
+}
+
+// 教练班次类型
+enum ScheduleType {
+  REGULAR // 常规排班
+  SPECIAL_EVENT // 特殊活动
+  PRIVATE_LESSON // 私教课程
+  GROUP_LESSON // 团体课程
+  CAMP // 训练营
+}
+
+// 排班状态
+enum ScheduleStatus {
+  ACTIVE // 激活
+  CANCELLED // 已取消
+  COMPLETED // 已完成
+  DRAFT // 草稿
+}
+
+// 教练班次与临时调整
+model CoachShift {
+  id                 Int         @id @default(autoincrement()) // 班次ID
+  scheduleId         Int // 排班ID
+  shiftDate          DateTime // 班次日期
+  startTime          DateTime // 开始时间
+  endTime            DateTime // 结束时间
+  isSubstitution     Boolean     @default(false) // 是否是代班
+  originalCoachId    Int? // 原教练ID(如果是代班)
+  substitutionReason String? // 代班原因
+  status             ShiftStatus @default(SCHEDULED) // 班次状态
+
+  // 关联关系
+  schedule CoachSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_shifts")
+}
+
+// 班次状态
+enum ShiftStatus {
+  SCHEDULED // 已排班
+  COMPLETED // 已完成
+  MISSED // 缺席
+  CANCELLED // 已取消
+}
+
+// 教练申请和审批记录
+model CoachApplication {
+  id               Int            @id @default(autoincrement()) // 申请ID
+  coachId          Int // 教练ID
+  applicationDate  DateTime       @default(now()) // 申请日期
+  status           ApprovalStatus @default(PENDING) // 审批状态
+  reviewerId       Int? // 审核人ID
+  reviewDate       DateTime? // 审核日期
+  comments         String? // 审核意见
+  documents        String? // 提交的文档（JSON数组）
+  applicationRound Int            @default(1) // 申请轮次，支持多次申请
+
+  // 关联关系
+  coach Coach @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_applications")
+}
+
+// COURSES & LESSONS
+model Lesson {
+  id              Int        @id @default(autoincrement()) // 课程ID
+  coachId         Int // 教练ID
+  name            String // 课程名称
+  description     String     @db.Text // 课程描述
+  skillLevel      SkillLevel // 技能等级
+  maxParticipants Int // 最大参与人数
+  duration        Int // 课程时长（分钟）
+  price           Float // 价格
+  isPrivate       Boolean    @default(false) // 是否私教课程
+  location        String // 上课地点
+  isActive        Boolean    @default(true) // 是否激活
+
+  // 关联关系
+  coach       Coach              @relation(fields: [coachId], references: [id])
+  enrollments LessonEnrollment[] // 报名记录
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("lessons")
+}
+
+model LessonEnrollment {
+  id               Int               @id @default(autoincrement()) // 报名ID
+  lessonId         Int // 课程ID
+  userId           Int // 用户ID
+  enrollmentDate   DateTime          @default(now()) // 报名日期
+  status           EnrollmentStatus  @default(CONFIRMED) // 报名状态
+  attendanceStatus AttendanceStatus? // 出勤状态
+  notes            String? // 备注
+
+  // 关联关系
+  lesson Lesson @relation(fields: [lessonId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("lesson_enrollments")
+}
+
+enum EnrollmentStatus {
+  PENDING // 待确认
+  CONFIRMED // 已确认
+  CANCELLED // 已取消
+  REFUNDED // 已退款
+}
+
+enum AttendanceStatus {
+  PRESENT // 出席
+  ABSENT // 缺席
+  LATE // 迟到
+}
+
+enum SkillLevel {
+  BEGINNER // 初学者
+  INTERMEDIATE // 中级
+  ADVANCED // 高级
+  EXPERT // 专家
+}
+
+// 产品与装备
+model Product {
+  id             Int         @id @default(autoincrement()) // 产品ID
+  name           String // 产品名称
+  description    String      @db.Text // 产品描述
+  categoryId     Int // 分类ID
+  price          Float // 原价
+  salePrice      Float? // 促销价
+  inventory      Int         @default(0) // 库存
+  sku            String      @unique // SKU编码
+  images         String // 图片URL（JSON数组）
+  isActive       Boolean     @default(true) // 是否激活
+  isFeatured     Boolean     @default(false) // 是否推荐
+  productType    ProductType // 产品类型
+  specifications String? // 规格参数（JSON对象）
+
+  // 关联关系
+  category      Category       @relation(fields: [categoryId], references: [id])
+  skus          ProductSku[] // 产品SKU
+  orderDetails  OrderDetail[] // 订单明细
+  cartItems     CartItem[] // 购物车项目
+  favoriteItems FavoriteItem[] // 收藏项目
+  reviews       Review[]       @relation("ProductReviews") // 产品评价
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("products")
+}
+
+enum ProductType {
+  SKI_EQUIPMENT // 滑雪装备
+  SNOWBOARD_EQUIPMENT // 单板装备
+  ACCESSORY // 配件
+  CLOTHING // 服装
+  TICKET // 票券
+  PACKAGE // 套餐
+  SOUVENIR // 纪念品
+}
+
+model ProductSku {
+  id         Int     @id @default(autoincrement()) // SKU ID
+  productId  Int // 产品ID
+  skuCode    String  @unique // SKU编码
+  attributes String // 属性（颜色、尺寸等JSON对象）
+  price      Float // 价格
+  inventory  Int     @default(0) // 库存
+  images     String? // 图片URL（JSON数组）
+  isDefault  Boolean @default(false) // 是否默认SKU
+
+  // 关联关系
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderDetails OrderDetail[] // 订单明细
+  cartItems    CartItem[] // 购物车项目
+  rentalItems  RentalItem[] // 租赁项目
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("product_skus")
+}
+
+model Category {
+  id          Int     @id @default(autoincrement()) // 分类ID
+  name        String // 分类名称
+  description String? // 分类描述
+  parentId    Int? // 父分类ID
+  image       String? // 分类图片
+  isActive    Boolean @default(true) // 是否激活
+  sortOrder   Int     @default(0) // 排序顺序
+
+  // 分类层级关系
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+
+  // 关联关系
+  products Product[] // 分类产品
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("categories")
+}
+
+// 购物车与收藏
+model CartItem {
+  id        Int  @id @default(autoincrement()) // 购物车项目ID
+  userId    Int // 用户ID
+  productId Int // 产品ID
+  skuId     Int? // SKU ID
+  quantity  Int  @default(1) // 数量
+
+  // 关联关系
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product     @relation(fields: [productId], references: [id])
+  sku     ProductSku? @relation(fields: [skuId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("cart_items")
+}
+
+model FavoriteItem {
+  id        Int @id @default(autoincrement()) // 收藏项目ID
+  userId    Int // 用户ID
+  productId Int // 产品ID
+
+  // 关联关系
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+
+  @@unique([userId, productId])
+  @@map("favorite_items")
+}
+
+// 订单与支付
+model Order {
+  id              Int           @id @default(autoincrement()) // 订单ID
+  userId          Int // 用户ID
+  orderNumber     String        @unique // 订单编号
+  totalAmount     Float // 总金额
+  discountAmount  Float         @default(0) // 优惠金额
+  paymentAmount   Float // 支付金额
+  status          OrderStatus   @default(PENDING) // 订单状态
+  paymentStatus   PaymentStatus @default(UNPAID) // 支付状态
+  shippingAddress String? // 收货地址（JSON对象）
+  shippingMethod  String? // 配送方式
+  shippingFee     Float         @default(0) // 运费
+  trackingNumber  String? // 物流单号
+  notes           String? // 备注
+
+  // 关联关系
+  user         User          @relation(fields: [userId], references: [id])
+  orderDetails OrderDetail[] // 订单明细
+  payments     Payment[] // 支付记录
+  couponsUsed  CouponUsage[] // 使用的优惠券
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING // 待处理
+  PROCESSING // 处理中
+  COMPLETED // 已完成
+  CANCELLED // 已取消
+  REFUNDED // 已退款
+}
+
+enum PaymentStatus {
+  UNPAID // 未支付
+  PARTIALLY_PAID // 部分支付
+  PAID // 已支付
+  REFUNDED // 已退款
+  FAILED // 支付失败
+}
+
+model OrderDetail {
+  id             Int   @id @default(autoincrement()) // 订单明细ID
+  orderId        Int // 订单ID
+  productId      Int // 产品ID
+  skuId          Int? // SKU ID
+  quantity       Int // 数量
+  unitPrice      Float // 单价
+  totalPrice     Float // 总价
+  discountAmount Float @default(0) // 优惠金额
+
+  // 关联关系
+  order   Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product     @relation(fields: [productId], references: [id])
+  sku     ProductSku? @relation(fields: [skuId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("order_details")
+}
+
+model Payment {
+  id              Int               @id @default(autoincrement()) // 支付ID
+  orderId         Int // 订单ID
+  paymentNumber   String            @unique // 支付编号
+  amount          Float // 支付金额
+  paymentMethod   PaymentMethodType // 支付方式
+  status          PaymentStatus     @default(UNPAID) // 支付状态
+  transactionId   String? // 交易ID
+  gatewayResponse String? // 支付网关响应（JSON格式）
+
+  // 关联关系
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("payments")
+}
+
+enum PaymentMethodType {
+  CREDIT_CARD // 信用卡
+  WECHAT_PAY // 微信支付
+  ALIPAY // 支付宝
+  BANK_TRANSFER // 银行转账
+  CASH // 现金
+  OTHER // 其他
+}
+
+model PaymentMethod {
+  id            Int               @id @default(autoincrement()) // 支付方式ID
+  userId        Int // 用户ID
+  type          PaymentMethodType // 支付类型
+  provider      String // 提供商
+  accountNumber String? // 账号（信用卡仅显示最后4位）
+  expiryDate    DateTime? // 到期日期
+  isDefault     Boolean           @default(false) // 是否默认支付方式
+  tokenizedData String? // 加密支付数据
+
+  // 关联关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("payment_methods")
+}
+
+// 促销与优惠券
+model Coupon {
+  id                 Int        @id @default(autoincrement()) // 优惠券ID
+  code               String     @unique // 优惠码
+  name               String // 优惠券名称
+  description        String? // 优惠券描述
+  type               CouponType // 优惠类型
+  value              Float // 优惠金额（百分比或固定金额）
+  minSpend           Float      @default(0) // 最低消费
+  maxDiscount        Float? // 最大优惠金额
+  startDate          DateTime // 开始日期
+  endDate            DateTime // 结束日期
+  usageLimit         Int? // 使用次数限制
+  perUserLimit       Int? // 每用户使用限制
+  isActive           Boolean    @default(true) // 是否激活
+  applicableProducts String? // 适用产品（产品ID的JSON数组）
+
+  // 关联关系
+  usage CouponUsage[] // 优惠券使用记录
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coupons")
+}
+
+enum CouponType {
+  PERCENTAGE // 百分比折扣
+  FIXED_AMOUNT // 固定金额
+  FREE_SHIPPING // 免运费
+  BUY_X_GET_Y // 买X送Y
+}
+
+model CouponUsage {
+  id             Int   @id @default(autoincrement()) // 使用记录ID
+  couponId       Int // 优惠券ID
+  orderId        Int // 订单ID
+  userId         Int // 用户ID
+  discountAmount Float // 优惠金额
+
+  // 关联关系
+  coupon Coupon @relation(fields: [couponId], references: [id])
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+
+  @@unique([couponId, orderId])
+  @@map("coupon_usage")
+}
+
+// 预约与预订
+model Appointment {
+  id                 Int               @id @default(autoincrement()) // 预约ID
+  userId             Int // 用户ID
+  scheduleId         Int // 教练排班ID
+  appointmentDate    DateTime // 预约日期
+  startTime          DateTime // 开始时间
+  endTime            DateTime // 结束时间
+  status             AppointmentStatus @default(PENDING) // 预约状态
+  cancellationReason String? // 取消原因
+  notes              String? // 备注
+
+  // 关联关系
+  user     User          @relation("UserAppointments", fields: [userId], references: [id])
+  schedule CoachSchedule @relation(fields: [scheduleId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("appointments")
+}
+
+enum AppointmentStatus {
+  PENDING // 待确认
+  CONFIRMED // 已确认
+  COMPLETED // 已完成
+  CANCELLED // 已取消
+  NO_SHOW // 未出席
+}
+
+// REVIEWS & RATINGS
+model Review {
+  id      Int          @id @default(autoincrement()) // 评价ID
+  userId  Int // 用户ID
+  rating  Int // 评分（1-5星）
+  comment String?      @db.Text // 评价内容
+  images  String? // 图片（JSON数组）
+  status  ReviewStatus @default(PENDING) // 评价状态
+
+  // 多态关系用于不同评价类型
+  reviewType ReviewType // 评价类型
+  productId  Int? // 产品ID
+  coachId    Int? // 教练ID
+
+  // 关联关系
+  user    User     @relation(fields: [userId], references: [id])
+  product Product? @relation("ProductReviews", fields: [productId], references: [id])
+  coach   Coach?   @relation("CoachReviews", fields: [coachId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("reviews")
+}
+
+enum ReviewType {
+  PRODUCT // 产品评价
+  COACH // 教练评价
+  RESORT // 度假村评价
+  LESSON // 课程评价
+}
+
+enum ReviewStatus {
+  PENDING // 待审核
+  APPROVED // 已批准
+  REJECTED // 已拒绝
+}
+
+// SKI RESORT MANAGEMENT
+model SkiResort {
+  id           Int          @id @default(autoincrement()) // 滑雪场ID
+  name         String // 滑雪场名称
+  description  String       @db.Text // 滑雪场描述
+  location     String // 位置
+  latitude     Float? // 纬度
+  longitude    Float? // 经度
+  elevation    Int? // 海拔高度（米）
+  totalSlopes  Int          @default(0) // 总雪道数量
+  totalLifts   Int          @default(0) // 总缆车数量
+  openingHours String? // 营业时间（JSON结构）
+  contactInfo  String? // 联系信息（JSON对象）
+  amenities    String? // 设施服务（JSON数组）
+  rules        String? // 场地规则（JSON数组）
+  status       ResortStatus @default(OPEN) // 场地状态
+  images       String? // 图片（JSON数组）
+
+  // 关联关系
+  slopes           SkiSlope[] // 雪道
+  lifts            SkiLift[] // 缆车
+  weatherForecasts WeatherForecast[] // 天气预报
+  snowReports      SnowReport[] // 雪况报告
+  events           Event[] // 活动
+  managedBy        Staff?            @relation("ResortManager", fields: [managerId], references: [id]) // 管理人员
+  managerId        Int?              @unique // 管理人员ID
+  coaches          Coach[] // 所属教练
+  coachTeams       CoachTeam[] // 教练团队
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("ski_resorts")
+}
+
+enum ResortStatus {
+  OPEN // 开放
+  CLOSED // 关闭
+  PARTIALLY_OPEN // 部分开放
+  MAINTENANCE // 维护中
+  SEASONAL_CLOSURE // 季节性关闭
+}
+
+model SkiSlope {
+  id           Int             @id @default(autoincrement()) // 雪道ID
+  resortId     Int // 滑雪场ID
+  name         String // 雪道名称
+  description  String? // 雪道描述
+  length       Int // 长度（米）
+  difficulty   SlopeDifficulty // 难度等级
+  status       SlopeStatus     @default(OPEN) // 雪道状态
+  verticalDrop Int? // 垂直落差（米）
+  avgGrade     Float? // 平均坡度（百分比）
+  maxGrade     Float? // 最大坡度（百分比）
+  isGroomed    Boolean         @default(true) // 是否已整理
+  isLighted    Boolean         @default(false) // 是否有照明
+
+  // 关联关系
+  resort SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("ski_slopes")
+}
+
+enum SlopeDifficulty {
+  BEGINNER // 初级（绿道）
+  INTERMEDIATE // 中级（蓝道）
+  ADVANCED // 高级（红道）
+  EXPERT // 专家（黑道）
+  EXTREME // 极限（双黑道）
+}
+
+enum SlopeStatus {
+  OPEN // 开放
+  CLOSED // 关闭
+  GROOMING // 整理中
+  MAINTENANCE // 维护中
+}
+
+model SkiLift {
+  id           Int        @id @default(autoincrement()) // 缆车ID
+  resortId     Int // 滑雪场ID
+  name         String // 缆车名称
+  description  String? // 缆车描述
+  liftType     LiftType // 缆车类型
+  capacity     Int // 每小时载客量
+  length       Int // 长度（米）
+  verticalRise Int? // 垂直上升高度（米）
+  duration     Int? // 行程时间（分钟）
+  status       LiftStatus @default(OPERATING) // 运行状态
+  waitTime     Int? // 等待时间（分钟）
+
+  // 关联关系
+  resort SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("ski_lifts")
+}
+
+enum LiftType {
+  CHAIR_LIFT // 座椅式缆车
+  GONDOLA // 箱式缆车
+  CABLE_CAR // 缆车
+  T_BAR // T型拖牵
+  MAGIC_CARPET // 魔毯
+  ROPE_TOW // 拖绳
+}
+
+enum LiftStatus {
+  OPERATING // 运行中
+  CLOSED // 关闭
+  MAINTENANCE // 维护中
+  SCHEDULED // 计划中
+  ON_HOLD // 暂停中
+}
+
+// 票券与租赁
+model SkiTicket {
+  id         Int        @id @default(autoincrement()) // 票券ID
+  userId     Int // 用户ID
+  ticketType TicketType // 票券类型
+  price      Float // 价格
+  validFrom  DateTime // 有效期开始
+  validTo    DateTime // 有效期结束
+  isActive   Boolean    @default(true) // 是否有效
+  qrCode     String? // 二维码
+  isScanned  Boolean    @default(false) // 是否已扫描
+  scannedAt  DateTime? // 扫描时间
+
+  // 关联关系
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("ski_tickets")
+}
+
+enum TicketType {
+  DAY_PASS // 日票
+  HALF_DAY // 半天票
+  MULTI_DAY // 多日票
+  SEASON_PASS // 季票
+  NIGHT_SKIING // 夜场票
+  BEGINNER_AREA // 初学者区域票
+}
+
+model RentalItem {
+  id              Int          @id @default(autoincrement()) // 租赁项目ID
+  userId          Int // 用户ID
+  skuId           Int // 产品SKU ID
+  rentalStart     DateTime // 租赁开始时间
+  rentalEnd       DateTime // 租赁结束时间
+  returnedAt      DateTime? // 实际归还时间
+  deposit         Float? // 押金
+  rentalFee       Float // 租金
+  status          RentalStatus @default(BOOKED) // 租赁状态
+  condition       String? // 出借时状况记录
+  returnCondition String? // 归还时状况记录
+
+  // 关联关系
+  user User       @relation(fields: [userId], references: [id])
+  sku  ProductSku @relation(fields: [skuId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("rental_items")
+}
+
+enum RentalStatus {
+  BOOKED // 已预订
+  CHECKED_OUT // 已出借
+  RETURNED // 已归还
+  OVERDUE // 逾期
+  DAMAGED // 损坏
+  LOST // 丢失
+}
+
+// 天气与雪况
+model WeatherForecast {
+  id               Int      @id @default(autoincrement()) // 天气预报ID
+  resortId         Int // 滑雪场ID
+  forecastDate     DateTime // 预报日期
+  temperature      Float? // 温度（摄氏度）
+  windSpeed        Float? // 风速（公里/小时）
+  windDirection    String? // 风向
+  precipitation    Float? // 降水量（毫米）
+  humidity         Int? // 湿度（百分比）
+  snowfall         Float? // 预计降雪量（厘米）
+  visibility       String? // 能见度
+  weatherCondition String? // 天气状况
+
+  // 关联关系
+  resort SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("weather_forecasts")
+}
+
+model SnowReport {
+  id            Int            @id @default(autoincrement()) // 雪况报告ID
+  resortId      Int // 滑雪场ID
+  reportDate    DateTime // 报告日期
+  newSnow24h    Float? // 24小时新雪量（厘米）
+  snowDepthBase Float? // 基地雪深（厘米）
+  snowDepthTop  Float? // 山顶雪深（厘米）
+  totalSnowfall Float? // 本季累计降雪量（厘米）
+  groomed       Boolean        @default(false) // 是否已整理
+  snowCondition SnowCondition? // 雪况状态
+
+  // 关联关系
+  resort SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("snow_reports")
+}
+
+enum SnowCondition {
+  POWDER // 粉雪
+  PACKED_POWDER // 压实粉雪
+  MACHINE_GROOMED // 机器整理雪
+  HARD_PACKED // 硬雪
+  SPRING_CONDITIONS // 春雪
+  ICY // 结冰
+  VARIABLE // 多变
+}
+
+// EVENTS & ACTIVITIES
+model Event {
+  id                  Int      @id @default(autoincrement()) // 活动ID
+  resortId            Int // 滑雪场ID
+  name                String // 活动名称
+  description         String   @db.Text // 活动描述
+  startDate           DateTime // 开始日期
+  endDate             DateTime // 结束日期
+  location            String // 活动地点
+  maxParticipants     Int? // 最大参与人数
+  currentParticipants Int      @default(0) // 当前参与人数
+  price               Float? // 活动价格
+  isActive            Boolean  @default(true) // 是否激活
+  images              String? // 图片（JSON数组）
+
+  // 关联关系
+  resort SkiResort @relation(fields: [resortId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("events")
+}
+
+// NOTIFICATIONS
+model Notification {
+  id      Int              @id @default(autoincrement()) // 通知ID
+  userId  Int // 用户ID
+  title   String // 通知标题
+  message String           @db.Text // 通知内容
+  type    NotificationType // 通知类型
+  isRead  Boolean          @default(false) // 是否已读
+  readAt  DateTime? // 阅读时间
+  data    String? // 相关数据（JSON格式）
+
+  // 关联关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  SYSTEM // 系统通知
+  ORDER // 订单通知
+  PAYMENT // 支付通知
+  APPOINTMENT // 预约通知
+  PROMOTION // 促销通知
+  WEATHER_ALERT // 天气预警
+  EVENT // 活动通知
+}
+
+// SYSTEM SETTINGS
+model SystemSetting {
+  id           Int     @id @default(autoincrement()) // 设置ID
+  settingKey   String  @unique // 设置键
+  settingValue String // 设置值
+  settingGroup String // 设置分组
+  description  String? // 描述
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("system_settings")
+}
+
+// ACTIVITY LOGGING
+model ActivityLog {
+  id          Int     @id @default(autoincrement()) // 日志ID
+  userId      Int? // 用户ID
+  actionType  String // 操作类型
+  entityType  String? // 实体类型
+  entityId    String? // 实体ID
+  description String? // 描述
+  ipAddress   String? // IP地址
+  userAgent   String? // 用户代理
+
+  createdAt DateTime @default(now()) // 创建时间
+
+  @@map("activity_logs")
+}
+
+// 教练资格与认证
+model CoachCertification {
+  id                Int                 @id @default(autoincrement()) // 认证ID
+  coachId           Int // 教练ID
+  certificateType   String // 证书类型
+  certificateNumber String? // 证书编号
+  issuingAuthority  String // 发证机构
+  issueDate         DateTime // 发证日期
+  expiryDate        DateTime? // 过期日期
+  verificationUrl   String? // 验证链接
+  documentUrl       String? // 证书文档URL
+  isVerified        Boolean             @default(false) // 是否已验证
+  status            CertificationStatus @default(VALID) // 认证状态
+
+  // 关联关系
+  coach Coach @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_certifications")
+}
+
+enum CertificationStatus {
+  VALID // 有效
+  EXPIRED // 已过期
+  PENDING // 待验证
+  REVOKED // 已撤销
+}
+
+// 教练评估与晋升
+model CoachEvaluation {
+  id                   Int              @id @default(autoincrement()) // 评估ID
+  coachId              Int // 教练ID
+  evaluatorId          Int? // 评估人ID
+  evaluationDate       DateTime // 评估日期
+  currentLevel         CoachLevel // 当前等级
+  recommendedLevel     CoachLevel? // 推荐等级
+  technicalScore       Int? // 技术得分(1-100)
+  teachingScore        Int? // 教学得分(1-100)
+  customerServiceScore Int? // 客户服务得分(1-100)
+  notes                String? // 评估备注
+  result               EvaluationResult @default(PENDING) // 评估结果
+
+  // 关联关系
+  coach Coach @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_evaluations")
+}
+
+enum EvaluationResult {
+  PENDING // 待定
+  PROMOTED // 晋升
+  MAINTAINED // 维持
+  DEMOTED // 降级
+}
+
+// 教练培训与发展
+model CoachTraining {
+  id              Int          @id @default(autoincrement()) // 培训ID
+  name            String // 培训名称
+  description     String?      @db.Text // 培训描述
+  startDate       DateTime // 开始日期
+  endDate         DateTime // 结束日期
+  location        String? // 培训地点
+  trainer         String? // 培训师
+  trainingType    TrainingType // 培训类型
+  requiredLevel   CoachLevel? // 培训所需等级
+  maxParticipants Int? // 最大参与人数
+
+  // 关联关系
+  enrollments TrainingEnrollment[] // 报名记录
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_trainings")
+}
+
+// 教练培训报名
+model TrainingEnrollment {
+  id               Int                       @id @default(autoincrement()) // 报名ID
+  trainingId       Int // 培训ID
+  coachId          Int // 教练ID
+  enrollmentDate   DateTime                  @default(now()) // 报名日期
+  status           EnrollmentStatus          @default(CONFIRMED) // 报名状态
+  attendanceStatus AttendanceStatus? // 出勤状态
+  completionStatus TrainingCompletionStatus? // 完成状态
+  certificate      String? // 培训证书URL
+
+  // 关联关系
+  training CoachTraining @relation(fields: [trainingId], references: [id])
+  coach    Coach         @relation(fields: [coachId], references: [id])
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("training_enrollments")
+}
+
+enum TrainingType {
+  TECHNICAL // 技术培训
+  TEACHING // 教学方法培训
+  SAFETY // 安全培训
+  CUSTOMER_SERVICE // 客户服务培训
+  MANAGEMENT // 管理培训
+}
+
+enum TrainingCompletionStatus {
+  COMPLETED // 已完成
+  FAILED // 失败
+  IN_PROGRESS // 进行中
+  NOT_STARTED // 未开始
+}
+
+// 教练收入与结算
+model CoachIncome {
+  id               Int              @id @default(autoincrement()) // 收入ID
+  coachId          Int // 教练ID
+  amount           Float // 收入金额
+  commissionRate   Float            @default(0.7) // 教练提成比例
+  commissionAmount Float // 教练实际获得金额
+  platformAmount   Float // 平台获得金额
+  incomeType       IncomeType // 收入类型
+  status           IncomeStatus     @default(PENDING) // 收入状态
+  sourceType       IncomeSourceType // 收入来源类型
+  sourceId         String // 来源ID (如订单ID、课程ID等)
+  description      String? // 收入描述
+
+  // 关联关系
+  coach        Coach            @relation(fields: [coachId], references: [id])
+  settlement   CoachSettlement? @relation(fields: [settlementId], references: [id])
+  settlementId Int? // 结算ID
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_incomes")
+}
+
+enum IncomeType {
+  LESSON_FEE // 课程费用
+  PRIVATE_COACHING // 私教费用
+  COMMISSION // 销售提成
+  BONUS // 奖金
+  OTHER // 其他
+}
+
+enum IncomeStatus {
+  PENDING // 待结算
+  SETTLED // 已结算
+  CANCELLED // 已取消
+  DISPUTED // 有争议
+}
+
+enum IncomeSourceType {
+  LESSON // 课程
+  ORDER // 订单
+  APPOINTMENT // 预约
+  MANUAL // 手动添加
+  BONUS // 奖金
+}
+
+// 教练结算周期记录
+model CoachSettlement {
+  id             Int              @id @default(autoincrement()) // 结算ID
+  coachId        Int // 教练ID
+  periodStart    DateTime // 结算周期开始
+  periodEnd      DateTime // 结算周期结束
+  totalAmount    Float // 总结算金额
+  platformFee    Float // 平台费用
+  taxAmount      Float? // 税费
+  finalAmount    Float // 最终结算金额
+  paymentMethod  String? // 结算方式
+  paymentAccount String? // 结算账户
+  status         SettlementStatus @default(PENDING) // 结算状态
+  paymentDate    DateTime? // 实际支付日期
+  notes          String? // 备注
+
+  // 关联关系
+  coach   Coach         @relation(fields: [coachId], references: [id])
+  incomes CoachIncome[] // 关联的收入记录
+
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_settlements")
+}
+
+enum SettlementStatus {
+  PENDING // 待处理
+  PROCESSING // 处理中
+  COMPLETED // 已完成
+  FAILED // 失败
+  CANCELLED // 已取消
+}
+
+// 教练团队管理
+model CoachTeam {
+  id          Int     @id @default(autoincrement())
+  name        String // 团队名称
+  description String? @db.Text
+  resortId    Int // 所属滑雪场
+  leaderId    Int? // 团队负责人
+  specialties String? // JSON array of team specialties
+  isActive    Boolean @default(true)
+  logo        String? // 团队logo
+  maxMembers  Int? // 最大成员数
+
+  // Relationships
+  resort  SkiResort         @relation(fields: [resortId], references: [id])
+  leader  Coach?            @relation("TeamLeader", fields: [leaderId], references: [id])
+  members CoachTeamMember[] // 团队成员
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  selectedQuizId String?
-  selectedQuiz   Quiz?     @relation(fields: [selectedQuizId], references: [id])
-  SDKToken       SDKToken? @relation
-  SDKTokenId     String?
-
-  quizQRImage String?
-
-  @@unique([SDKTokenId])
+  @@map("coach_teams")
 }
 
+// 教练团队成员关系
+model CoachTeamMember {
+  id       Int            @id @default(autoincrement())
+  teamId   Int
+  coachId  Int
+  joinDate DateTime       @default(now())
+  role     TeamMemberRole @default(MEMBER)
+  isActive Boolean        @default(true)
 
-model InviteCode {
-  id             String   @id @default(cuid())
-  code           String   @unique
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  expirationDate DateTime
-  metadata       Json?
-  userId         String
-  user           User     @relation(fields: [userId], references: [id])
+  // Relationships
+  team  CoachTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  coach Coach     @relation(fields: [coachId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, coachId])
+  @@map("coach_team_members")
 }
 
-model QuizCategory {
-  id          String        @id @default(cuid())
-  name        String // 分类名称 
-  quizzes     Quiz[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  image       String?
-  algorithmId String
-  algorithm   QuizAlgorithm @relation(fields: [algorithmId], references: [id])
-
-  quizResultId String?
-  quizResult   QuizResult? @relation(fields: [quizResultId], references: [id])
-
-  @@unique([name])
+enum TeamMemberRole {
+  LEADER // 团队负责人
+  DEPUTY_LEADER // 副负责人
+  SENIOR_MEMBER // 高级成员
+  MEMBER // 普通成员
+  TRAINEE // 实习教练
 }
 
-model Quiz {
-  id         String       @id @default(cuid())
-  name       String // 题型名称
-  categoryId String?
-  category   QuizCategory? @relation(fields: [categoryId], references: [id])
+// 教练统计数据
+model CoachStatistics {
+  id             Int   @id @default(autoincrement())
+  coachId        Int   @unique
+  totalLessons   Int   @default(0) // 总课程数量
+  totalStudents  Int   @default(0) // 总学生数量
+  totalHours     Float @default(0) // 总教学小时
+  totalIncome    Float @default(0) // 总收入
+  totalRatings   Int   @default(0) // 总评价数量
+  avgRating      Float @default(5.0) // 平均评分
+  completionRate Float @default(100) // 课程完成率(%)
 
-  businessUsers BusinessUser[]
-  questions     Question[] // 关联的题目
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-}
+  // 本月数据
+  monthlyLessons  Int   @default(0) // 本月课程数
+  monthlyStudents Int   @default(0) // 本月学生数
+  monthlyHours    Float @default(0) // 本月教学小时
+  monthlyIncome   Float @default(0) // 本月收入
+  monthlyRatings  Int   @default(0) // 本月评价数
 
-model QuizAlgorithm {
-  id           String         @id @default(cuid())
-  name         String
-  description  String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  QuizCategory QuizCategory[]
-}
+  // 周数据
+  weeklyLessons  Int   @default(0) // 本周课程数
+  weeklyStudents Int   @default(0) // 本周学生数
+  weeklyHours    Float @default(0) // 本周教学小时
+  weeklyIncome   Float @default(0) // 本周收入
 
-model QuizResult {
-  id          String     @id @default(cuid())
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  name        String
-  description String
-  headerImage String
-  
-  personal    Personal[]
-  QuizCategory   QuizCategory[]
-}
+  // 特殊成就
+  certifiedSkills     String? // JSON array of certified skills
+  specialAchievements String? // JSON array of special achievements
+  rankingScore        Int     @default(0) // 计算用于排名的分数
 
-model Personal {
-  id               String     @id @default(cuid())
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
-  personalCategory String
-  personalAnalyze  String
-  personalColor    String
-  personalColorCode String?
-  personalPower    String
+  // Relationships
+  coach Coach @relation(fields: [coachId], references: [id])
 
-  quizResultId     String
-  quizResult       QuizResult @relation(fields: [quizResultId], references: [id])
-
-  personalAvatar String
-  description    String
-}
-
-model Question {
-  questionIndex Int
-  id            String         @id @default(cuid())
-  content       String // 题目内容
-  powerClass    PowerClass?
-  quizId        String
-  image         String?
-  typeClass     String?
-  type          QuizType
-  quiz          Quiz           @relation(fields: [quizId], references: [id])
-  options       Option[] // 关联的选项
-  optionAnswers OptionAnswer[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-}
-
-model Option {
-  id          String   @id @default(cuid())
-  optionIndex Int
-  content     String
+  lastUpdated DateTime @default(now())
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  questionId  String
-  question    Question @relation(fields: [questionId], references: [id])
+
+  @@map("coach_statistics")
 }
 
-model OptionAnswer {
-  id String @id @default(cuid())
+// 教练排行榜
+model CoachRanking {
+  id          Int               @id @default(autoincrement())
+  rankingType RankingType
+  periodType  RankingPeriodType
+  periodYear  Int // 年份
+  periodMonth Int? // 月份(如果按月)
+  periodWeek  Int? // 周数(如果按周)
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  questionId        String
-  question          Question @relation(fields: [questionId], references: [id])
-  metadata          Json?
-  content           String
-  optionAnswerIndex Int
+  // 排行榜数据 (存储为JSON)
+  rankingData String // JSON array of {coachId, score, rank}
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([rankingType, periodType, periodYear, periodMonth, periodWeek])
+  @@map("coach_rankings")
 }
 
-enum PowerClass {
-  PRIMARY
-  ASSIST
+enum RankingType {
+  LESSON_COUNT // 课程数量排行
+  INCOME // 收入排行
+  RATING // 评分排行
+  STUDENT_COUNT // 学生数量排行
+  COMPREHENSIVE // 综合排行
 }
 
-enum QuizType {
-  RADIO
-  MULTIPLE
+enum RankingPeriodType {
+  WEEKLY // 周排行
+  MONTHLY // 月排行
+  QUARTERLY // 季度排行
+  YEARLY // 年度排行
+  ALL_TIME // 总排行
 }
 
-enum RoleType {
-  SUPER_ADMIN
-  ADMIN
-  USER
-  GUEST
-  BANNED
+// 教练工作日志
+model CoachWorkLog {
+  id                Int         @id @default(autoincrement())
+  coachId           Int
+  logDate           DateTime // 日志日期
+  startTime         DateTime // 开始时间
+  endTime           DateTime // 结束时间
+  logType           WorkLogType // 日志类型
+  title             String // 标题
+  description       String?     @db.Text
+  relatedEntityType String? // 相关实体类型(如lesson, appointment等)
+  relatedEntityId   String? // 相关实体ID
+  studentProgress   String? // 学生进度记录(JSON)
+  teachingPoints    String? // 教学要点(JSON)
+  nextStepPlan      String? // 下一步计划
+  mood              Int? // 心情评分(1-5)
+  weather           String? // 天气情况
+  images            String? // 图片记录(JSON array)
+  isPublic          Boolean     @default(false) // 是否公开(可被学员查看)
+
+  // Relationships
+  coach Coach @relation(fields: [coachId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("coach_work_logs")
+}
+
+enum WorkLogType {
+  TEACHING // 教学日志
+  TRAINING // 培训日志
+  MEETING // 会议记录
+  PREPARATION // 教学准备
+  ASSESSMENT // 学员评估
+  PERSONAL_GROWTH // 个人成长
+  OTHER // 其他
+}
+
+// 学生学习记录(教练可为学生创建学习进度记录)
+model StudentLearningRecord {
+  id              Int        @id @default(autoincrement())
+  userId          Int // 学生用户ID
+  coachId         Int // 教练ID
+  recordDate      DateTime // 记录日期
+  skillLevel      SkillLevel // 当前技能等级
+  performance     Int // 表现评分(1-100)
+  strengths       String? // 优势(JSON array)
+  weaknesses      String? // 需改进项(JSON array)
+  learningGoals   String? // 学习目标(JSON array)
+  recommendations String? // 教练建议
+  notes           String?    @db.Text
+
+  // Relationships
+  user  User  @relation(fields: [userId], references: [id])
+  coach Coach @relation(fields: [coachId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("student_learning_records")
+}
+
+// 教练绩效指标
+model CoachPerformanceMetric {
+  id               Int      @id @default(autoincrement()) // 绩效指标ID
+  coachId          Int // 教练ID
+  metricDate       DateTime // 指标日期
+  lessonsCount     Int      @default(0) // 课程数量
+  lessonsHours     Float    @default(0) // 课程总小时数
+  studentsCount    Int      @default(0) // 学生数量
+  studentRetention Float? // 学生留存率
+  averageRating    Float? // 平均评分
+  cancellationRate Float? // 取消率
+  completionRate   Float? // 完成率
+  conversionRate   Float? // 转化率
+  totalRevenue     Float? // 总收入
+  commissionEarned Float? // 已获得佣金
+
+  // 关联关系
+  coach     Coach    @relation(fields: [coachId], references: [id])
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_performance_metrics")
+}
+
+// 教练绩效评估
+model CoachPerformanceReview {
+  id                Int                     @id @default(autoincrement()) // 绩效评估ID
+  coachId           Int // 教练ID
+  reviewerId        Int // 评估人ID
+  reviewPeriodStart DateTime // 评估周期开始
+  reviewPeriodEnd   DateTime // 评估周期结束
+  reviewDate        DateTime // 评估日期
+  overallRating     Float // 总体评分
+  technicalSkills   Float // 技术技能评分
+  customerService   Float // 客户服务评分
+  punctuality       Float // 准时性评分
+  teamwork          Float // 团队合作评分
+  leadership        Float? // 领导力评分
+  strengths         String? // 优势
+  areasToImprove    String? // 待改进领域
+  goals             String? // 目标
+  reviewStatus      PerformanceReviewStatus @default(DRAFT) // 评估状态
+
+  // 关联关系
+  coach     Coach    @relation(fields: [coachId], references: [id])
+  reviewer  User     @relation("ReviewerRelation", fields: [reviewerId], references: [id])
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_performance_reviews")
+}
+
+enum PerformanceReviewStatus {
+  DRAFT // 草稿
+  IN_REVIEW // 审核中
+  COMPLETED // 已完成
+  DISPUTED // 有争议
+}
+
+// 教练可用时间
+model CoachAvailability {
+  id           Int                @id @default(autoincrement()) // 可用时间ID
+  coachId      Int // 教练ID
+  dayOfWeek    Int // 星期几(1-7，1代表周一)
+  startTime    DateTime // 开始时间
+  endTime      DateTime // 结束时间
+  isRecurring  Boolean            @default(true) // 是否循环
+  specificDate DateTime? // 特定日期(如果不是循环)
+  status       AvailabilityStatus @default(AVAILABLE) // 状态
+  notes        String? // 备注
+
+  // 关联关系
+  coach     Coach    @relation(fields: [coachId], references: [id])
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_availabilities")
+}
+
+enum AvailabilityStatus {
+  AVAILABLE // 可用
+  UNAVAILABLE // 不可用
+  TENTATIVE // 待定
+}
+
+// 教练资质
+model CoachQualification {
+  id                Int       @id @default(autoincrement()) // 资质ID
+  coachId           Int // 教练ID
+  qualificationType String // 资质类型
+  level             String // 级别
+  awardingBody      String // 授予机构
+  dateObtained      DateTime // 获得日期
+  expiryDate        DateTime? // 过期日期
+  documentUrl       String? // 文档URL
+  isVerified        Boolean   @default(false) // 是否已验证
+
+  // 关联关系
+  coach     Coach    @relation(fields: [coachId], references: [id])
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_qualifications")
+}
+
+// 教练专长
+model CoachSpecialty {
+  id               Int              @id @default(autoincrement()) // 专长ID
+  coachId          Int // 教练ID
+  specialty        String // 专长名称
+  description      String? // 专长描述
+  yearsExperience  Int? // 经验年数
+  proficiencyLevel ProficiencyLevel @default(INTERMEDIATE) // 熟练度级别
+  isMainSpecialty  Boolean          @default(false) // 是否主要专长
+
+  // 关联关系
+  coach     Coach    @relation(fields: [coachId], references: [id])
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_specialties")
+}
+
+enum ProficiencyLevel {
+  BEGINNER // 初级
+  INTERMEDIATE // 中级
+  ADVANCED // 高级
+  EXPERT // 专家
+}
+
+// 教练专业领域
+model CoachAreaExpertise {
+  id             Int     @id @default(autoincrement()) // 专业领域ID
+  coachId        Int // 教练ID
+  area           String // 领域名称
+  description    String? // 领域描述
+  certifications String? // 相关认证
+
+  // 关联关系
+  coach     Coach    @relation(fields: [coachId], references: [id])
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_area_expertise")
+}
+
+// 教练反馈
+model CoachFeedback {
+  id              Int            @id @default(autoincrement()) // 反馈ID
+  coachId         Int // 教练ID
+  userId          Int // 用户ID
+  lessonId        Int? // 课程ID
+  rating          Float // 评分(1-5)
+  feedbackType    FeedbackType   @default(LESSON) // 反馈类型
+  feedbackContent String // 反馈内容
+  teachingQuality Float? // 教学质量评分
+  communication   Float? // 沟通能力评分
+  punctuality     Float? // 准时性评分
+  knowledge       Float? // 专业知识评分
+  responseTime    Int? // 响应时间(分钟)
+  status          FeedbackStatus @default(PUBLISHED) // 反馈状态
+  coachResponse   String? // 教练回复
+
+  // 关联关系
+  coach     Coach    @relation(fields: [coachId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+
+  @@map("coach_feedbacks")
+}
+
+enum FeedbackType {
+  LESSON // 课程
+  COMMUNICATION // 沟通
+  SERVICE // 服务
+  GENERAL // 综合
+}
+
+enum FeedbackStatus {
+  DRAFT // 草稿
+  PUBLISHED // 已发布
+  UNDER_REVIEW // 审核中
+  REMOVED // 已移除
 }
