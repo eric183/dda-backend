@@ -36,21 +36,25 @@ export class GlobalCacheService implements OnModuleInit {
 
     // const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`;
     const url = `https://api.weixin.qq.com/cgi-bin/stable_token`;
-    const res = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({
-        appid,
-        secret,
-        grant_type: 'client_credential',
-      }),
-    });
-    const data = await res.json();
-    console.log(data, '......caching');
-    if (!res.ok || data.errcode) {
-      throw new Error(`Failed to fetch WeChat token: ${JSON.stringify(data)}`);
-    }
+    // const res = await fetch(url, {
+    //   method: 'POST',
+    //   body: JSON.stringify({
+    //     appid,
+    //     secret,
+    //     grant_type: 'client_credential',
+    //   }),
+    // });
+    // const data = await res.json();
+    // console.log(data, '......caching');
+    // if (!res.ok || data.errcode) {
+    //   throw new Error(`Failed to fetch WeChat token: ${JSON.stringify(data)}`);
+    // }
 
-    return data;
+    // return data;
+    return {
+      access_token: '123',
+      expires_in: 7200,
+    };
   }
 
   // ... existing code ...

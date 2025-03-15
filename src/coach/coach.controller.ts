@@ -31,6 +31,7 @@ export class CoachController {
   @ApiResponse({ status: 201, description: '教练创建成功' })
   @ApiResponse({ status: 400, description: '请求参数错误' })
   create(@Body() createCoachDto: CreateCoachDto) {
+    console.log(createCoachDto, '......createCoachDto.....');
     return this.coachService.create(createCoachDto);
   }
 

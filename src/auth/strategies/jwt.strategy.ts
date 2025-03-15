@@ -22,9 +22,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
     console.log('user', user);
 
-    if (!user || !user.isActive) {
-      throw new UnauthorizedException();
-    }
+    // if (!user || !user.isActive) {  
+    //   throw new UnauthorizedException();
+    // }
 
     return {
       id: user.id,

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCoachDto } from './dto/create-coach.dto';
 import { UpdateCoachDto } from './dto/update-coach.dto';
@@ -11,28 +15,60 @@ export class CoachService {
 
   async create(createCoachDto: CreateCoachDto) {
     try {
+      console.log(createCoachDto, '......createCoachDto.....');
       // 检查用户是否存在
-      const userExists = await this.prisma.user.findUnique({
-        where: { id: createCoachDto.userId },
-      });
+      // const userExists = await this.prisma.user.findUnique({
+      //   where: { id: createCoachDto.userId },
+      // });
+      let user = { id: createCoachDto.userId };
+      if (!createCoachDto.userId) {
+        // 先检查是否已存在相同unionId的用户
+        const existingUser = await this.prisma.user.findUnique({
+          where: { unionId: createCoachDto.unionId },
+        });
 
-      if (!userExists) {
-        throw new BadRequestException('User not found');
+        if (existingUser) {
+          user = existingUser;
+          console.log('找到已存在的用户，使用该用户');
+        } else {
+          user = await this.prisma.user.create({
+            data: {
+              unionId: createCoachDto.unionId,
+              mobile: createCoachDto.mobile,
+              name: createCoachDto.name,
+            },
+          });
+          console.log('用户不存在，创建用户');
+        }
+        // throw new BadRequestException('User not found');
       }
 
       // 检查用户是否已经是教练
       const existingCoach = await this.prisma.coach.findUnique({
-        where: { userId: createCoachDto.userId },
+        where: { userId: user.id },
       });
 
       if (existingCoach) {
         throw new BadRequestException('User is already a coach');
       }
 
+      // 检查 resortId 是否有效
+      if (createCoachDto.resortId) {
+        const resortExists = await this.prisma.skiResort.findUnique({
+          where: { id: createCoachDto.resortId },
+        });
+
+        if (!resortExists) {
+          throw new BadRequestException(
+            'Resort not found with the provided ID',
+          );
+        }
+      }
+
       // 创建教练
       const coach = await this.prisma.coach.create({
         data: {
-          userId: createCoachDto.userId,
+          userId: user.id,
           bio: createCoachDto.bio,
           specialties: createCoachDto.specialties,
           experienceYears: createCoachDto.experienceYears,
@@ -52,7 +88,7 @@ export class CoachService {
       return ApiResponseUtil.success(coach, 'Coach created successfully');
     } catch (error) {
       if (error instanceof BadRequestException) {
-        return ApiResponseUtil.error(error.message, 400);
+        return ApiResponseUtil.error(error.message, 500);
       }
       console.error('Create coach error:', error);
       return ApiResponseUtil.error('Failed to create coach');
@@ -66,11 +102,11 @@ export class CoachService {
           user: {
             select: {
               id: true,
-              username: true,
               email: true,
-              phone: true,
               avatar: true,
               nickname: true,
+              name: true,
+              mobile: true,
             },
           },
           resort: {
@@ -96,9 +132,7 @@ export class CoachService {
           user: {
             select: {
               id: true,
-              username: true,
               email: true,
-              phone: true,
               avatar: true,
               nickname: true,
             },
@@ -113,10 +147,9 @@ export class CoachService {
           schedules: true,
           reviews: {
             include: {
-              reviewer: {
+              user: {
                 select: {
                   id: true,
-                  username: true,
                   avatar: true,
                   nickname: true,
                 },
@@ -162,11 +195,15 @@ export class CoachService {
         where: { id },
         data: {
           ...updateCoachDto,
-          approvedAt: updateCoachDto.approvalStatus === ApprovalStatus.APPROVED ? approvedAt : undefined,
+          approvedAt:
+            updateCoachDto.approvalStatus === ApprovalStatus.APPROVED
+              ? approvedAt
+              : undefined,
         },
       });
 
-      return ApiResponseUtil.success(updatedCoach, 'Coach updated successfully');
+      console.log(updatedCoach, '......updatedCoach.....');
+      return updatedCoach;
     } catch (error) {
       console.error('Update coach error:', error);
       return ApiResponseUtil.error('Failed to update coach');
@@ -200,23 +237,24 @@ export class CoachService {
   async findPendingCoaches() {
     try {
       const pendingCoaches = await this.prisma.coach.findMany({
-        where: { 
-          approvalStatus: ApprovalStatus.PENDING 
+        where: {
+          approvalStatus: ApprovalStatus.PENDING,
         },
         include: {
           user: {
             select: {
               id: true,
-              username: true,
               email: true,
-              phone: true,
               avatar: true,
               nickname: true,
             },
           },
         },
       });
-      return ApiResponseUtil.success(pendingCoaches, 'Pending coaches retrieved successfully');
+      return ApiResponseUtil.success(
+        pendingCoaches,
+        'Pending coaches retrieved successfully',
+      );
     } catch (error) {
       console.error('Find pending coaches error:', error);
       return ApiResponseUtil.error('Failed to retrieve pending coaches');
@@ -235,7 +273,7 @@ export class CoachService {
       }
 
       if (coach.approvalStatus !== ApprovalStatus.PENDING) {
-        return ApiResponseUtil.error('Coach is not in pending status', 400);
+        return ApiResponseUtil.error('Coach is not in pending status', 500);
       }
 
       const updatedCoach = await this.prisma.coach.update({
@@ -247,7 +285,10 @@ export class CoachService {
         },
       });
 
-      return ApiResponseUtil.success(updatedCoach, 'Coach approved successfully');
+      return ApiResponseUtil.success(
+        updatedCoach,
+        'Coach approved successfully',
+      );
     } catch (error) {
       console.error('Approve coach error:', error);
       return ApiResponseUtil.error('Failed to approve coach');
@@ -266,7 +307,7 @@ export class CoachService {
       }
 
       if (coach.approvalStatus !== ApprovalStatus.PENDING) {
-        return ApiResponseUtil.error('Coach is not in pending status', 400);
+        return ApiResponseUtil.error('Coach is not in pending status', 500);
       }
 
       const updatedCoach = await this.prisma.coach.update({
@@ -278,7 +319,10 @@ export class CoachService {
         },
       });
 
-      return ApiResponseUtil.success(updatedCoach, 'Coach application rejected');
+      return ApiResponseUtil.success(
+        updatedCoach,
+        'Coach application rejected',
+      );
     } catch (error) {
       console.error('Reject coach error:', error);
       return ApiResponseUtil.error('Failed to reject coach application');
@@ -294,9 +338,7 @@ export class CoachService {
           user: {
             select: {
               id: true,
-              username: true,
               email: true,
-              phone: true,
               avatar: true,
               nickname: true,
             },

@@ -46,6 +46,7 @@ model User {
   coachProfile        Coach? // 教练资料（如果用户是教练）
   staffProfile        Staff? // 员工资料（如果用户是员工）
   learningRecords     StudentLearningRecord[] // 学习记录
+  coachStudentRelations CoachStudent[] @relation("studentCoaches") // 作为学生的教练关系
 
   // 添加缺少的关系字段
   performanceReviews CoachPerformanceReview[] @relation("ReviewerRelation") // 作为评估者的绩效评估
@@ -55,6 +56,7 @@ model User {
   updatedAt DateTime @updatedAt // 更新时间
 
   @@map("users")
+  CoachStudent CoachStudent[]
 }
 
 enum Gender {
@@ -245,7 +247,9 @@ model Coach {
   teamMemberships      CoachTeamMember[] // 团队成员关系
   statistics           CoachStatistics? // 教练统计数据
   workLogs             CoachWorkLog[] // 工作日志
+
   studentRecords       StudentLearningRecord[] // 学生学习记录
+  students             CoachStudent[] // 添加教练的学生关系
 
   // 添加缺少的关系字段
   performanceMetrics CoachPerformanceMetric[] // 绩效指标
@@ -1321,7 +1325,7 @@ model CoachTeamMember {
   coach Coach     @relation(fields: [coachId], references: [id])
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt // 更新时间
 
   @@unique([teamId, coachId])
   @@map("coach_team_members")
@@ -1557,6 +1561,41 @@ enum AvailabilityStatus {
   AVAILABLE // 可用
   UNAVAILABLE // 不可用
   TENTATIVE // 待定
+}
+
+// 教练-学生关系
+model CoachStudent {
+  id             Int       @id @default(autoincrement())
+  coachId        Int       // 教练ID
+  studentId      Int       // 学生用户ID
+  startDate      DateTime  @default(now()) // 关系开始日期
+  endDate        DateTime? // 关系结束日期(如果有)
+  relationStatus RelationStatus @default(ACTIVE)
+  totalLessons   Int       @default(0) // 总课程数
+  notes          String?   // 教练对学生的备注
+  
+  // 特殊字段
+  lastLessonDate DateTime? // 最后一次课程日期
+  nextLessonDate DateTime? // 下一次课程日期
+  preferredStyle String?   // 学生偏好的教学风格
+  
+  // 关联关系
+  coach   Coach   @relation(fields: [coachId], references: [id])
+  student User    @relation(fields: [studentId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([coachId, studentId])
+  @@map("coach_students")
+  User User[] @relation("studentCoaches")
+}
+
+enum RelationStatus {
+  ACTIVE     // 活跃
+  INACTIVE   // 不活跃
+  COMPLETED  // 已完成
+  PAUSED     // 暂停
 }
 
 // 教练资质
