@@ -22,14 +22,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
     console.log('user', user);
 
-    // if (!user || !user.isActive) {  
+    // if (!user || !user.isActive) {
     //   throw new UnauthorizedException();
     // }
 
     return {
       id: user.id,
       email: user.email,
-      role: user.role,
+      roles: user.roles,
     };
   }
 }

@@ -27,7 +27,7 @@ model User {
   score       Int       @default(0) // 用户评分
   isVerified  Boolean   @default(false) // 身份验证状态
   lastLoginAt DateTime? // 最后登录时间
-  role        UserRole  @default(CUSTOMER) // 用户角色
+  roles       UserRole[]  @default([CUSTOMER]) // 用户角色
 
   // 关联关系
   member              Member? // 关联的会员资料
@@ -211,7 +211,7 @@ model Coach {
   specialties     String // 专长领域（JSON数组）
   experienceYears Int        @default(0) // 教学经验年限
   certifications  String? // 证书（JSON数组）
-  hourlyRate      Float // 每小时收费
+  hourlyRate      Float? // 每小时收费
   availability    String? // 可用时间（JSON结构）
   isActive        Boolean    @default(true) // 是否在职
   coachLevel      CoachLevel // 教练等级

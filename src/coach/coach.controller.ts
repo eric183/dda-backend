@@ -35,11 +35,28 @@ export class CoachController {
     return this.coachService.create(createCoachDto);
   }
 
-  @Get()
-  @ApiOperation({ summary: '获取所有教练列表' })
+  @Get('checkCoachStatus')
+  @ApiOperation({ summary: '检查教练状态' })
+  @ApiParam({ name: 'unionId', description: '用户ID' })
+  @ApiResponse({ status: 200, description: '成功获取教练状态' })
+  @ApiResponse({ status: 404, description: '教练不存在' })
+  checkCoachStatus(@Query('unionId') unionId: string) {}
+
+  // 获取在职的以通过审核的教练列表
+  @Get('list')
+  @ApiOperation({ summary: '获取在职的以通过审核的教练列表' })
   @ApiResponse({ status: 200, description: '成功获取教练列表' })
-  findAll() {
-    return this.coachService.findAll();
+  getCoachList() {
+    return this.coachService.getCoachList();
+  }
+
+  @Get('byUnionId')
+  @ApiOperation({ summary: '根据unionId获取教练信息' })
+  @ApiParam({ name: 'unionId', description: '用户ID' })
+  @ApiResponse({ status: 200, description: '成功获取教练信息' })
+  @ApiResponse({ status: 404, description: '教练不存在' })
+  getCoachByUnionId(@Query('unionId') unionId: string) {
+    return this.coachService.getCoachByUnionId(unionId);
   }
 
   @Get('pending')
@@ -56,6 +73,13 @@ export class CoachController {
   @ApiResponse({ status: 404, description: '教练不存在' })
   findByUserId(@Param('userId') userId: string) {
     return this.coachService.findByUserId(+userId);
+  }
+
+  @Get()
+  @ApiOperation({ summary: '获取所有教练列表' })
+  @ApiResponse({ status: 200, description: '成功获取教练列表' })
+  findAll() {
+    return this.coachService.findAll();
   }
 
   @Get(':id')

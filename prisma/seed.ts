@@ -31,7 +31,7 @@ async function main() {
         password: hashedPassword,
         name: 'Admin',
         nickname: 'Admin',
-        role: UserRole.ADMIN,
+        roles: [UserRole.CUSTOMER],
         gender: Gender.OTHER,
         isVerified: true,
         avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
@@ -93,7 +93,7 @@ async function main() {
           password: await hash(`password${i}`, 10),
           name: `User ${i}`,
           nickname: `Skier ${i}`,
-          role: UserRole.CUSTOMER,
+          roles: [UserRole.CUSTOMER],
           gender: i % 2 === 0 ? Gender.FEMALE : Gender.MALE,
           isVerified: true,
           avatar: `https://randomuser.me/api/portraits/${
@@ -145,7 +145,7 @@ async function main() {
           password: await hash(`coach${i}`, 10),
           name: `Coach ${i}`,
           nickname: `Pro Coach ${i}`,
-          role: UserRole.COACH,
+          roles: [UserRole.COACH],
           gender: i % 2 === 0 ? Gender.FEMALE : Gender.MALE,
           isVerified: true,
           avatar: `https://randomuser.me/api/portraits/${

@@ -6,7 +6,13 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCoachDto } from './dto/create-coach.dto';
 import { UpdateCoachDto } from './dto/update-coach.dto';
-import { Coach, Prisma, ApprovalStatus } from '@prisma/client';
+import {
+  Coach,
+  Prisma,
+  ApprovalStatus,
+  UserRole,
+  CoachLevel,
+} from '@prisma/client';
 import { ApiResponseUtil } from 'base/utils/api-response.util';
 
 @Injectable()
@@ -29,6 +35,13 @@ export class CoachService {
 
         if (existingUser) {
           user = existingUser;
+          this.prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              mobile: createCoachDto.mobile,
+              name: createCoachDto.name,
+            },
+          });
           console.log('找到已存在的用户，使用该用户');
         } else {
           user = await this.prisma.user.create({
@@ -68,7 +81,12 @@ export class CoachService {
       // 创建教练
       const coach = await this.prisma.coach.create({
         data: {
-          userId: user.id,
+          user: {
+            connect: { id: user.id },
+          },
+          resort: {
+            connect: { id: createCoachDto.resortId },
+          },
           bio: createCoachDto.bio,
           specialties: createCoachDto.specialties,
           experienceYears: createCoachDto.experienceYears,
@@ -80,12 +98,17 @@ export class CoachService {
           languagesSpoken: createCoachDto.languagesSpoken,
           identityDocuments: createCoachDto.identityDocuments,
           qualificationDocuments: createCoachDto.qualificationDocuments,
-          resortId: createCoachDto.resortId,
           approvalStatus: ApprovalStatus.PENDING, // 默认待审核
         },
       });
 
-      return ApiResponseUtil.success(coach, 'Coach created successfully');
+      return ApiResponseUtil.success(
+        {
+          coach,
+          user,
+        },
+        'Coach created successfully',
+      );
     } catch (error) {
       if (error instanceof BadRequestException) {
         return ApiResponseUtil.error(error.message, 500);
@@ -122,6 +145,18 @@ export class CoachService {
       console.error('Find all coaches error:', error);
       return ApiResponseUtil.error('Failed to retrieve coaches');
     }
+  }
+
+  // 获取在职的以通过审核的教练列表
+  async getCoachList() {
+    const coaches = await this.prisma.coach.findMany({
+      where: { approvalStatus: ApprovalStatus.APPROVED, isActive: true },
+      include: {
+        user: true,
+        resort: true,
+      },
+    });
+    return ApiResponseUtil.success(coaches, 'Coaches retrieved successfully');
   }
 
   async findOne(id: number) {
@@ -188,6 +223,15 @@ export class CoachService {
         existingCoach.approvalStatus !== ApprovalStatus.APPROVED
       ) {
         approvedAt = new Date();
+        // 设置用户角色
+        await this.prisma.user.update({
+          where: { id: existingCoach.userId },
+          data: {
+            roles: {
+              set: [UserRole.COACH],
+            },
+          },
+        });
       }
 
       // 更新教练信息
@@ -362,4 +406,92 @@ export class CoachService {
       return ApiResponseUtil.error('Failed to retrieve coach');
     }
   }
+
+  // 根据unionId查找教练
+  async getCoachByUnionId(unionId: string) {
+    console.log(unionId, '......unionId.....');
+    const user = await this.prisma.user.findUnique({
+      where: { unionId },
+    });
+
+    // if (!user) {
+    //   user = await this.prisma.user.create({
+    //     data: {
+    //       unionId,
+    //     },
+    //   });
+    //   // return ApiResponseUtil.notFound('User not found');
+    // }
+
+    // if (user.roles.includes(UserRole.COACH)) {
+    const coach = await this.prisma.coach.findUnique({
+      where: { userId: user.id },
+    });
+
+    return ApiResponseUtil.success(
+      {
+        user,
+        coach,
+      },
+      'Coach retrieved successfully',
+    );
+    // }
+
+    return ApiResponseUtil.success(user, 'User retrieved successfully');
+  }
+
+  // async apply(applyCoachDto: {
+  //   unionId: string;
+  //   bio: string;
+  //   certifications: string;
+  //   lessons: string[];
+  //   experience: string;
+  //   level: string;
+  //   mobile: string;
+  //   name: string;
+  //   specialty: string;
+  //   hourlyRate: number;
+  // }) {
+  //   let user = await this.prisma.user.findUnique({
+  //     where: { unionId: applyCoachDto.unionId },
+  //   });
+
+  //   if (!user) {
+  //     user = await this.prisma.user.create({
+  //       data: {
+  //         unionId: applyCoachDto.unionId,
+  //         mobile: applyCoachDto.mobile,
+  //         name: applyCoachDto.name,
+  //       },
+  //     });
+  //   }
+
+  //   const coach = await this.prisma.coach.create({
+  //     data: {
+  //       user: {
+  //         connect: { id: user.id },
+  //       },
+  //       resort: {
+  //         connect: { id: applyCoachDto.resortId },
+  //       },
+  //       bio: applyCoachDto.bio,
+  //       certifications: applyCoachDto.certifications,
+  //       experienceYears: parseInt(applyCoachDto.experience),
+  //       coachLevel: applyCoachDto.level as CoachLevel,
+  //       specialties: applyCoachDto.specialty,
+  //       hourlyRate: 0,
+  //       // specialty: applyCoachDto.specialty,
+  //       // teachingStyle: applyCoachDto.teachingStyle,
+  //     },
+  //   });
+
+  //   return ApiResponseUtil.success(applyCoachDto, 'Apply coach successfully');
+  // }
+
+  // async getCoachByUnionId(unionId: string) {
+  //   const coach = await this.prisma.coach.findUnique({
+  //     where: { unionId },
+  //   });
+  //   return ApiResponseUtil.success(coach, 'Coach retrieved successfully');
+  // }
 }
