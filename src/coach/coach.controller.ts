@@ -1,25 +1,23 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
-import { CoachService } from './coach.service';
-import { CreateCoachDto } from './dto/create-coach.dto';
-import { UpdateCoachDto } from './dto/update-coach.dto';
 import {
-  ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { CoachService } from './coach.service';
+import { CreateCoachDto } from './dto/create-coach.dto';
+import { UpdateCoachDto } from './dto/update-coach.dto';
 
 @ApiTags('coaches')
 @Controller('coaches')
@@ -31,7 +29,6 @@ export class CoachController {
   @ApiResponse({ status: 201, description: '教练创建成功' })
   @ApiResponse({ status: 400, description: '请求参数错误' })
   create(@Body() createCoachDto: CreateCoachDto) {
-    console.log(createCoachDto, '......createCoachDto.....');
     return this.coachService.create(createCoachDto);
   }
 
@@ -82,6 +79,14 @@ export class CoachController {
     return this.coachService.findAll();
   }
 
+  // // 用户预约教练
+  // @Post('user/appointment')
+  // @ApiOperation({ summary: '用户预约教练' })
+  // @ApiResponse({ status: 200, description: '成功预约教练' })
+  // @ApiResponse({ status: 400, description: '预约失败' })
+  // userAppointment(@Body() body: any) {
+  //   return this.coachService.userAppointment(body);
+  // }
   @Get(':id')
   @ApiOperation({ summary: '获取指定ID的教练信息' })
   @ApiParam({ name: 'id', description: '教练ID' })

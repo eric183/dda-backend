@@ -10,7 +10,9 @@ import { EncryptionService } from './encryption/encryption.service';
 import { GlobalCacheModule } from './global-cache/global-cache.module';
 import { HashModule } from './hash/hash.module';
 import { PrismaService } from './prisma/prisma.service';
+import { PrismaModule } from './prisma/prisma.module';
 import { CoachModule } from './coach/coach.module';
+import { AppointmentModule } from './appointment/appointment.module';
 
 @Module({
   imports: [
@@ -21,13 +23,14 @@ import { CoachModule } from './coach/coach.module';
       isGlobal: true,
     }),
     HashModule,
-
+    PrismaModule,
     EncryptionModule,
     AuthModule,
     GlobalCacheModule,
     CoachModule,
+    AppointmentModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, EncryptionService],
+  providers: [AppService, EncryptionService],
 })
 export class AppModule {}

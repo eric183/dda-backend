@@ -12,6 +12,7 @@ import {
   ApprovalStatus,
   UserRole,
   CoachLevel,
+  AppointmentStatus,
 } from '@prisma/client';
 import { ApiResponseUtil } from 'base/utils/api-response.util';
 
@@ -27,6 +28,7 @@ export class CoachService {
       //   where: { id: createCoachDto.userId },
       // });
       let user = { id: createCoachDto.userId };
+      console.log(user, '......user.....');
       if (!createCoachDto.userId) {
         // 先检查是否已存在相同unionId的用户
         const existingUser = await this.prisma.user.findUnique({
@@ -35,14 +37,15 @@ export class CoachService {
 
         if (existingUser) {
           user = existingUser;
-          this.prisma.user.update({
+          console.log(createCoachDto, '......createCoachDto.....');
+          const currentUser = await this.prisma.user.update({
             where: { id: existingUser.id },
             data: {
               mobile: createCoachDto.mobile,
               name: createCoachDto.name,
             },
           });
-          console.log('找到已存在的用户，使用该用户');
+          console.log(currentUser, '找到已存在的用户，使用该用户.....');
         } else {
           user = await this.prisma.user.create({
             data: {
@@ -154,6 +157,7 @@ export class CoachService {
       include: {
         user: true,
         resort: true,
+        reviews: true,
       },
     });
     return ApiResponseUtil.success(coaches, 'Coaches retrieved successfully');
@@ -410,18 +414,18 @@ export class CoachService {
   // 根据unionId查找教练
   async getCoachByUnionId(unionId: string) {
     console.log(unionId, '......unionId.....');
-    const user = await this.prisma.user.findUnique({
+    let user = await this.prisma.user.findUnique({
       where: { unionId },
     });
 
-    // if (!user) {
-    //   user = await this.prisma.user.create({
-    //     data: {
-    //       unionId,
-    //     },
-    //   });
-    //   // return ApiResponseUtil.notFound('User not found');
-    // }
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          unionId,
+        },
+      });
+      // return ApiResponseUtil.notFound('User not found');
+    }
 
     // if (user.roles.includes(UserRole.COACH)) {
     const coach = await this.prisma.coach.findUnique({
@@ -439,6 +443,31 @@ export class CoachService {
 
     return ApiResponseUtil.success(user, 'User retrieved successfully');
   }
+
+  // // 用户预约教练
+  // async userAppointment(body: any) {
+  //   console.log(body, '......body.....');
+  //   const { coachId, userId, date, time } = body;
+  //   const coach = await this.prisma.coach.findUnique({
+  //     where: { id: coachId },
+  //   });
+  //   if (!coach) {
+  //     return ApiResponseUtil.notFound('Coach not found');
+  //   }
+  //   const appointment = await this.prisma.appointment.create({
+  //     data: {
+  //       coachId,
+  //       userId,
+  //       date,
+  //       time,
+  //       status: AppointmentStatus.PENDING,
+  //     },
+  //   });
+  //   return ApiResponseUtil.success(
+  //     appointment,
+  //     'User appointment successfully',
+  //   );
+  // }
 
   // async apply(applyCoachDto: {
   //   unionId: string;
