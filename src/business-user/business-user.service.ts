@@ -46,6 +46,7 @@ export class BusinessUserService {
                     personal: true,
                   },
                 },
+                moreLink: true,
               },
             },
             questions: {
