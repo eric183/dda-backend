@@ -180,6 +180,9 @@ export class QuizService {
               connect: { id: updateQuizCategoryDto.quizBeginnerId },
             },
           }),
+          ...(updateQuizCategoryDto.moreLink && {
+            moreLink: updateQuizCategoryDto.moreLink,
+          }),
         },
       });
 
@@ -410,6 +413,8 @@ export class QuizService {
           include: {
             quizzes: true,
             quizBeginner: true,
+            algorithm: true,
+            quizResult: true,
           },
           skip: (page - 1) * pageSize,
           take: pageSize,

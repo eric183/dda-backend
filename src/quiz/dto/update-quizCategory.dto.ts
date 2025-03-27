@@ -25,4 +25,8 @@ export class UpdateQuizCategoryDto {
   @IsString()
   @IsOptional()
   quizBeginnerId?: string;
+
+  @IsString()
+  @IsOptional()
+  moreLink?: string;
 }

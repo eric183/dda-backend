@@ -99,6 +99,7 @@ model QuizCategory {
   image       String?
   algorithmId String
   algorithm   QuizAlgorithm @relation(fields: [algorithmId], references: [id])
+  moreLink    String?
 
   quizBeginnerId String?
   quizBeginner   QuizBeginner? @relation(fields: [quizBeginnerId], references: [id])

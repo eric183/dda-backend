@@ -141,7 +141,6 @@ export class QuizController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    console.log(id, 'id....dasjfasldj');
     return this.quizService.findOne(id);
   }
 
@@ -197,7 +196,6 @@ export class QuizController {
       search = '',
       filters = {},
     } = query;
-    console.log(query, 'query....dasjfasldj');
     return this.quizService.getAllQuizBeginner({
       page,
       pageSize,
